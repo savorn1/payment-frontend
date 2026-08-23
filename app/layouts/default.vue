@@ -9,7 +9,7 @@
             <UIcon name="i-lucide-banknote" class="w-4 h-4" />
           </span>
           <span v-if="!collapsed" class="font-bold text-gray-900 dark:text-white tracking-tight">
-            Payment Platform
+            Payment
           </span>
         </NuxtLink>
       </template>

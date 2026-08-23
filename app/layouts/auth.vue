@@ -12,7 +12,7 @@
         <span class="flex items-center justify-center w-9 h-9 rounded-lg bg-white/15 backdrop-blur">
           <UIcon name="i-lucide-banknote" class="w-5 h-5" />
         </span>
-        <span class="font-bold text-lg tracking-tight">Payment Platform</span>
+        <span class="font-bold text-lg tracking-tight">Payment</span>
       </NuxtLink>
 
       <div class="relative max-w-sm">
@@ -22,7 +22,7 @@
         </p>
       </div>
 
-      <p class="relative text-xs text-white/60">&copy; {{ year }} Payment Platform</p>
+      <p class="relative text-xs text-white/60">&copy; {{ year }} Payment </p>
     </div>
 
     <!-- Form panel -->
@@ -34,7 +34,7 @@
           >
             <UIcon name="i-lucide-banknote" class="w-6 h-6" />
           </span>
-          <h1 class="text-xl font-bold text-gray-900 dark:text-white">Payment Platform</h1>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-white">Payment</h1>
         </div>
         <slot />
       </div>

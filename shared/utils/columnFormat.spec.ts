@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { formatColumnText } from './columnFormat'
-import type { ColumnDef } from '~/shared/types'
+import type { ColumnDef } from '#shared/types'
 
 interface Row extends Record<string, unknown> {
   amount: number | null

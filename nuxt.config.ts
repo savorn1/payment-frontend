@@ -38,6 +38,14 @@ export default defineNuxtConfig({
     }
   },
 
+  // Nuxt Icon serves icon data from its own /api/_nuxt_icon/** route by
+  // default, which collides with the catch-all /api/** proxy below (that
+  // sent icon requests to the backend and returned 401s, breaking every
+  // lucide icon). Move it outside /api/ so the proxy never sees it.
+  icon: {
+    localApiEndpoint: '/_nuxt_icon'
+  },
+
   routeRules: {
     '/api/**': { proxy: `${backendBase}/api/**` }
   },

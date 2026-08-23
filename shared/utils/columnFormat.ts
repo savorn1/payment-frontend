@@ -1,4 +1,4 @@
-import type { ColumnDef, ColumnType } from '~/shared/types'
+import type { ColumnDef, ColumnType } from '#shared/types'
 
 export function formatColumnText<T extends Record<string, unknown>>(
   column: ColumnDef<T>,
