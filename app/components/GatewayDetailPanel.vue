@@ -92,6 +92,8 @@
           :columns="logColumns"
           :loading="logsLoading"
           refreshable
+          exportable
+          :export-filename="`${gateway.providerName}-call-logs`"
           @refresh="loadLogs"
         />
         <div v-if="logsTotal > 0" class="pt-4">

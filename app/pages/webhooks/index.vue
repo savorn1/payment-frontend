@@ -81,6 +81,8 @@
         :loading="loading"
         refreshable
         numbered
+        exportable
+        export-filename="webhook-deliveries"
         :row-number-start="(page - 1) * pageSize"
         @refresh="load"
         @select="openDetail"

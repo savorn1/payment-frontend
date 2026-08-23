@@ -1,21 +1,49 @@
-// Wraps payment-wallet's admin-only MerchantController (/api/merchants/*,
-// requires ROLE_ADMIN). Single-item endpoints wrap their payload in
-// ApiResponse<T>; list wraps in PageResponse<T> — same split as usePayments.ts.
-// Scoped here to just what Webhook Management needs (merchant search picker +
-// webhook config); full merchant account management (create, API keys) isn't
-// covered since nothing on the current checklist needs it yet.
+export type MerchantStatus = 'ACTIVE' | 'SUSPENDED'
 
 export interface Merchant {
   id: number
   userId: number
   name: string
-  status: string
+  status: MerchantStatus
   webhookUrl: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MerchantFilter {
+  name?: string
+  status?: MerchantStatus
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  size?: number
+}
+
+export interface CreateMerchantPayload {
+  userId: number
+  name: string
 }
 
 export interface WebhookConfig {
   webhookUrl: string | null
   webhookSecret: string | null
+}
+
+export type ApiKeyStatus = 'ACTIVE' | 'REVOKED'
+
+export interface ApiKey {
+  id: number
+  keyId: string
+  status: ApiKeyStatus
+  lastUsedAt: string | null
+  createdAt: string
+}
+
+export interface ApiKeyCreated {
+  id: number
+  keyId: string
+  rawKey: string
+  createdAt: string
 }
 
 interface ApiEnvelope<T> {
@@ -45,9 +73,33 @@ interface PageEnvelope<T> {
 export function useMerchants() {
   const api = useApi()
 
+  function list(filter: MerchantFilter = {}) {
+    return api<PageEnvelope<Merchant>>('/api/merchants', { query: filter })
+  }
+
   // Search-as-you-type picker — same shape as usePayments.searchRecipients.
   async function search(name: string) {
-    const res = await api<PageEnvelope<Merchant>>('/api/merchants', { query: { name, size: 10 } })
+    const res = await list({ name, size: 10 })
+    return res.data
+  }
+
+  async function get(id: number) {
+    const res = await api<ApiEnvelope<Merchant>>(`/api/merchants/${id}`)
+    return res.data
+  }
+
+  async function create(payload: CreateMerchantPayload) {
+    const res = await api<ApiEnvelope<Merchant>>('/api/merchants', { method: 'POST', body: payload })
+    return res.data
+  }
+
+  async function update(id: number, name: string) {
+    const res = await api<ApiEnvelope<Merchant>>(`/api/merchants/${id}`, { method: 'PUT', body: { name } })
+    return res.data
+  }
+
+  async function updateStatus(id: number, status: MerchantStatus) {
+    const res = await api<ApiEnvelope<Merchant>>(`/api/merchants/${id}/status`, { method: 'PUT', body: { status } })
     return res.data
   }
 
@@ -64,5 +116,33 @@ export function useMerchants() {
     return res.data
   }
 
-  return { search, getWebhookConfig, updateWebhookConfig }
+  async function listApiKeys(id: number) {
+    const res = await api<ApiEnvelope<ApiKey[]>>(`/api/merchants/${id}/api-keys`)
+    return res.data
+  }
+
+  // Returns the raw key exactly once — the backend never stores or returns
+  // it again after this call.
+  async function createApiKey(id: number) {
+    const res = await api<ApiEnvelope<ApiKeyCreated>>(`/api/merchants/${id}/api-keys`, { method: 'POST' })
+    return res.data
+  }
+
+  async function revokeApiKey(id: number, apiKeyId: number) {
+    await api(`/api/merchants/${id}/api-keys/${apiKeyId}`, { method: 'DELETE' })
+  }
+
+  return {
+    list,
+    search,
+    get,
+    create,
+    update,
+    updateStatus,
+    getWebhookConfig,
+    updateWebhookConfig,
+    listApiKeys,
+    createApiKey,
+    revokeApiKey
+  }
 }

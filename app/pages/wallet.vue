@@ -44,6 +44,12 @@
           <USelect v-model="filter.status" :items="statusFilterOptions" placeholder="Status" class="w-36" />
         </div>
       </UCard>
+      <DateAmountRangeFilter
+        v-model:start-date="filter.startDate"
+        v-model:end-date="filter.endDate"
+        v-model:min-amount="filter.minAmount"
+        v-model:max-amount="filter.maxAmount"
+      />
 
       <UAlert
         v-if="error"
@@ -62,6 +68,8 @@
           :loading="loading"
           refreshable
           numbered
+          exportable
+          export-filename="wallet-transactions"
           :row-number-start="(page - 1) * pageSize"
           @refresh="load"
           @select="openDetail"
@@ -120,10 +128,22 @@ async function onCreateWallet() {
   }
 }
 
-const filter = reactive<{ search: string; type: TransactionType | undefined; status: TransactionStatus | undefined }>({
+const filter = reactive<{
+  search: string
+  type: TransactionType | undefined
+  status: TransactionStatus | undefined
+  startDate: string | undefined
+  endDate: string | undefined
+  minAmount: number | undefined
+  maxAmount: number | undefined
+}>({
   search: '',
   type: undefined,
-  status: undefined
+  status: undefined,
+  startDate: undefined,
+  endDate: undefined,
+  minAmount: undefined,
+  maxAmount: undefined
 })
 
 const typeOptions = [
@@ -165,6 +185,10 @@ async function load() {
       type: filter.type,
       status: filter.status,
       search: filter.search || undefined,
+      startDate: filter.startDate,
+      endDate: filter.endDate,
+      minAmount: filter.minAmount,
+      maxAmount: filter.maxAmount,
       sortBy: sort.value?.column,
       sortOrder: sort.value?.direction,
       page: page.value,
@@ -192,7 +216,12 @@ function resetToFirstPage() {
 }
 
 watch(sort, resetToFirstPage)
-watch(() => [filter.type, filter.status], resetToFirstPage)
+// search reloads on Enter (see the input's @keyup.enter) rather than live on
+// every keystroke — everything else here reloads as soon as it changes.
+watch(
+  () => [filter.type, filter.status, filter.startDate, filter.endDate, filter.minAmount, filter.maxAmount],
+  resetToFirstPage
+)
 watch(pageSize, resetToFirstPage)
 watch(page, load)
 

@@ -36,6 +36,8 @@ export interface WithdrawalFilter {
   status?: WithdrawalStatus
   startDate?: string
   endDate?: string
+  minAmount?: number
+  maxAmount?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
   page?: number

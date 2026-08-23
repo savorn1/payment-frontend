@@ -26,6 +26,8 @@ export interface DepositFilter {
   status?: DepositStatus
   startDate?: string
   endDate?: string
+  minAmount?: number
+  maxAmount?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
   page?: number

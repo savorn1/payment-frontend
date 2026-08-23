@@ -12,7 +12,16 @@
     />
 
     <UCard>
-      <DataTable :rows="rows" :columns="columns" :loading="loading" refreshable @refresh="load" @select="openDetail" />
+      <DataTable
+        :rows="rows"
+        :columns="columns"
+        :loading="loading"
+        refreshable
+        exportable
+        export-filename="payment-gateways"
+        @refresh="load"
+        @select="openDetail"
+      />
     </UCard>
 
     <UModal v-model:open="showDetail" :title="selected ? `${selected.providerName} gateway` : 'Gateway detail'" :ui="{ content: 'sm:max-w-2xl' }">

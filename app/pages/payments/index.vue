@@ -5,6 +5,18 @@
       <UButton icon="i-lucide-plus" @click="showCreate = true">New payment</UButton>
     </div>
 
+    <UCard class="mb-4">
+      <div class="flex flex-wrap gap-3">
+        <USelect v-model="filter.status" :items="statusFilterOptions" placeholder="Status" class="w-40" />
+      </div>
+    </UCard>
+    <DateAmountRangeFilter
+      v-model:start-date="filter.startDate"
+      v-model:end-date="filter.endDate"
+      v-model:min-amount="filter.minAmount"
+      v-model:max-amount="filter.maxAmount"
+    />
+
     <UAlert
       v-if="error"
       color="error"
@@ -22,6 +34,8 @@
         :loading="loading"
         refreshable
         numbered
+        exportable
+        export-filename="my-transfers"
         @refresh="load"
         @select="openDetail"
       >
@@ -56,7 +70,7 @@
 
 <script setup lang="ts">
 import type { ColumnDef } from '#shared/types'
-import type { Payment } from '~/composables/usePayments'
+import type { Payment, PaymentStatus } from '~/composables/usePayments'
 
 const { listMine, create } = usePayments()
 const { getMine } = useWallet()
@@ -65,6 +79,20 @@ const rows = ref<Payment[]>([])
 const loading = ref(false)
 const error = ref('')
 const myUserId = ref<number>()
+
+const filter = reactive<{
+  status: PaymentStatus | undefined
+  startDate: string | undefined
+  endDate: string | undefined
+  minAmount: number | undefined
+  maxAmount: number | undefined
+}>({ status: undefined, startDate: undefined, endDate: undefined, minAmount: undefined, maxAmount: undefined })
+const statusFilterOptions = [
+  { label: 'All statuses', value: undefined },
+  { label: 'Pending', value: 'PENDING' },
+  { label: 'Success', value: 'SUCCESS' },
+  { label: 'Failed', value: 'FAILED' }
+]
 
 const showCreate = ref(false)
 const creating = ref(false)
@@ -100,7 +128,7 @@ async function load() {
   try {
     const [wallet, page] = await Promise.all([
       myUserId.value ? Promise.resolve(undefined) : getMine(),
-      listMine({ sortBy: sort.value?.column, sortOrder: sort.value?.direction, size: 50 })
+      listMine({ ...filter, sortBy: sort.value?.column, sortOrder: sort.value?.direction, size: 50 })
     ])
     if (wallet) myUserId.value = wallet.userId
     rows.value = page.data
@@ -134,4 +162,5 @@ onMounted(() => {
   if (route.query.new) showCreate.value = true
 })
 watch(sort, load)
+watch(filter, load)
 </script>

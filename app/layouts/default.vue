@@ -59,6 +59,7 @@ const items = computed<NavigationMenuItem[]>(() => [
     ? [
         { label: 'Administration', type: 'label' as const },
         { label: 'Users', to: '/users', icon: 'i-lucide-users' },
+        { label: 'Merchant Management', to: '/merchants', icon: 'i-lucide-store' },
         { label: 'Transfer Management', to: '/transfers', icon: 'i-lucide-arrow-left-right' },
         { label: 'Payment Gateway', to: '/gateways', icon: 'i-lucide-plug-zap' },
         { label: 'Webhook Management', to: '/webhooks', icon: 'i-lucide-webhook' },

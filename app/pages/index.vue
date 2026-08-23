@@ -177,7 +177,13 @@
             </UButton>
           </div>
         </template>
-        <DataTable :rows="summary?.recentTransactions ?? []" :columns="transactionColumns" :loading="loading" />
+        <DataTable
+          :rows="summary?.recentTransactions ?? []"
+          :columns="transactionColumns"
+          :loading="loading"
+          exportable
+          export-filename="recent-transactions"
+        />
       </UCard>
     </template>
 

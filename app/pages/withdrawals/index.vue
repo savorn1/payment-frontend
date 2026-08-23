@@ -5,6 +5,18 @@
       <UButton icon="i-lucide-plus" @click="showCreate = true">New withdrawal</UButton>
     </div>
 
+    <UCard class="mb-4">
+      <div class="flex flex-wrap gap-3">
+        <USelect v-model="filter.status" :items="statusFilterOptions" placeholder="Status" class="w-40" />
+      </div>
+    </UCard>
+    <DateAmountRangeFilter
+      v-model:start-date="filter.startDate"
+      v-model:end-date="filter.endDate"
+      v-model:min-amount="filter.minAmount"
+      v-model:max-amount="filter.maxAmount"
+    />
+
     <UAlert
       v-if="error"
       color="error"
@@ -15,7 +27,17 @@
     />
 
     <UCard>
-      <DataTable :rows="rows" :columns="columns" :loading="loading" refreshable numbered @refresh="load" @select="openDetail" />
+      <DataTable
+        :rows="rows"
+        :columns="columns"
+        :loading="loading"
+        refreshable
+        numbered
+        exportable
+        export-filename="my-withdrawals"
+        @refresh="load"
+        @select="openDetail"
+      />
     </UCard>
 
     <UModal
@@ -38,13 +60,29 @@
 
 <script setup lang="ts">
 import type { ColumnDef } from '#shared/types'
-import type { Withdrawal } from '~/composables/useWithdrawals'
+import type { Withdrawal, WithdrawalStatus } from '~/composables/useWithdrawals'
 
 const { listMine, create } = useWithdrawals()
 
 const rows = ref<Withdrawal[]>([])
 const loading = ref(false)
 const error = ref('')
+
+const filter = reactive<{
+  status: WithdrawalStatus | undefined
+  startDate: string | undefined
+  endDate: string | undefined
+  minAmount: number | undefined
+  maxAmount: number | undefined
+}>({ status: undefined, startDate: undefined, endDate: undefined, minAmount: undefined, maxAmount: undefined })
+const statusFilterOptions = [
+  { label: 'All statuses', value: undefined },
+  { label: 'Pending', value: 'PENDING' },
+  { label: 'Approved', value: 'APPROVED' },
+  { label: 'Rejected', value: 'REJECTED' },
+  { label: 'Success', value: 'SUCCESS' },
+  { label: 'Failed', value: 'FAILED' }
+]
 
 const showCreate = ref(false)
 const creating = ref(false)
@@ -62,7 +100,7 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const res = await listMine({ size: 50, sortBy: 'createdAt', sortOrder: 'desc' })
+    const res = await listMine({ ...filter, size: 50, sortBy: 'createdAt', sortOrder: 'desc' })
     rows.value = res.data
   } catch (err) {
     error.value = apiErrorMessage(err)
@@ -101,4 +139,5 @@ onMounted(() => {
   // Supports the Dashboard's "New withdrawal" quick action (/withdrawals?new=1).
   if (route.query.new) showCreate.value = true
 })
+watch(filter, load)
 </script>

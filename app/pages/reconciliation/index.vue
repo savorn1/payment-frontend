@@ -20,7 +20,15 @@
       <template #reports>
         <UCard>
           <UAlert v-if="reportsError" color="error" variant="subtle" class="mb-3" :title="reportsError" />
-          <DataTable :rows="runs" :columns="runColumns" :loading="reportsLoading" refreshable @refresh="loadRuns" />
+          <DataTable
+            :rows="runs"
+            :columns="runColumns"
+            :loading="reportsLoading"
+            refreshable
+            exportable
+            export-filename="reconciliation-reports"
+            @refresh="loadRuns"
+          />
           <div v-if="reportsTotal > 0" class="pt-4">
             <DataPagination v-model:page="reportsPage" v-model:page-size="reportsPageSize" :total="reportsTotal" />
           </div>
@@ -30,7 +38,15 @@
       <template #unmatched>
         <UCard>
           <UAlert v-if="unmatchedError" color="error" variant="subtle" class="mb-3" :title="unmatchedError" />
-          <DataTable :rows="unmatched" :columns="unmatchedColumns" :loading="unmatchedLoading" refreshable @refresh="loadUnmatched" />
+          <DataTable
+            :rows="unmatched"
+            :columns="unmatchedColumns"
+            :loading="unmatchedLoading"
+            refreshable
+            exportable
+            export-filename="unmatched-transactions"
+            @refresh="loadUnmatched"
+          />
           <div v-if="unmatchedTotal > 0" class="pt-4">
             <DataPagination v-model:page="unmatchedPage" v-model:page-size="unmatchedPageSize" :total="unmatchedTotal" />
           </div>
@@ -43,6 +59,12 @@
             <USelect v-model="settlementStatus" :items="settlementStatusOptions" placeholder="Status" class="w-40" />
           </div>
         </UCard>
+        <DateAmountRangeFilter
+          v-model:start-date="settlementFilter.startDate"
+          v-model:end-date="settlementFilter.endDate"
+          v-model:min-amount="settlementFilter.minAmount"
+          v-model:max-amount="settlementFilter.maxAmount"
+        />
         <UCard>
           <UAlert v-if="settlementsError" color="error" variant="subtle" class="mb-3" :title="settlementsError" />
           <DataTable
@@ -50,6 +72,8 @@
             :columns="settlementColumns"
             :loading="settlementsLoading"
             refreshable
+            exportable
+            export-filename="settlement-records"
             @refresh="loadSettlements"
           />
           <div v-if="settlementsTotal > 0" class="pt-4">
@@ -189,11 +213,19 @@ const settlementColumns: ColumnDef<AdminDeposit>[] = [
   { key: 'updatedAt', label: 'Settled at', type: 'datetime' }
 ]
 
+const settlementFilter = reactive<{
+  startDate?: string
+  endDate?: string
+  minAmount?: number
+  maxAmount?: number
+}>({})
+
 async function loadSettlements() {
   settlementsLoading.value = true
   settlementsError.value = ''
   try {
     const res = await listAllDeposits({
+      ...settlementFilter,
       status: settlementStatus.value,
       sortBy: 'updatedAt',
       sortOrder: 'desc',
@@ -214,6 +246,10 @@ watch(settlementsPageSize, () => {
   loadSettlements()
 })
 watch(settlementStatus, () => {
+  settlementsPage.value = 1
+  loadSettlements()
+})
+watch(settlementFilter, () => {
   settlementsPage.value = 1
   loadSettlements()
 })

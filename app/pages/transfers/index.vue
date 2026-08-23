@@ -18,6 +18,12 @@
         <USelect v-model="filter.status" :items="statusFilterOptions" placeholder="Status" class="w-40" />
       </div>
     </UCard>
+    <DateAmountRangeFilter
+      v-model:start-date="filter.startDate"
+      v-model:end-date="filter.endDate"
+      v-model:min-amount="filter.minAmount"
+      v-model:max-amount="filter.maxAmount"
+    />
 
     <UAlert
       v-if="error"
@@ -36,6 +42,8 @@
         :loading="loading"
         refreshable
         numbered
+        exportable
+        export-filename="transfer-management"
         :row-number-start="(page - 1) * pageSize"
         @refresh="load"
         @select="openDetail"
@@ -69,7 +77,13 @@ const rows = ref<AdminPayment[]>([])
 const loading = ref(false)
 const error = ref('')
 
-const filter = reactive<{ status: PaymentStatus | undefined }>({ status: undefined })
+const filter = reactive<{
+  status: PaymentStatus | undefined
+  startDate: string | undefined
+  endDate: string | undefined
+  minAmount: number | undefined
+  maxAmount: number | undefined
+}>({ status: undefined, startDate: undefined, endDate: undefined, minAmount: undefined, maxAmount: undefined })
 const statusOptions = [
   { label: 'Pending', value: 'PENDING' },
   { label: 'Success', value: 'SUCCESS' },
@@ -124,7 +138,7 @@ async function load() {
   error.value = ''
   try {
     const res = await listAll({
-      status: filter.status,
+      ...filter,
       userId: selectedUserId.value,
       sortBy: sort.value?.column,
       sortOrder: sort.value?.direction,
@@ -149,7 +163,10 @@ function resetToFirstPage() {
 }
 
 watch(sort, resetToFirstPage)
-watch(() => [filter.status, selectedUserId.value], resetToFirstPage)
+watch(
+  () => [filter.status, filter.startDate, filter.endDate, filter.minAmount, filter.maxAmount, selectedUserId.value],
+  resetToFirstPage
+)
 watch(pageSize, resetToFirstPage)
 watch(page, load)
 

@@ -12,9 +12,6 @@
 </template>
 
 <script setup lang="ts">
-// Thin resolver, Backpack-style: each field type has its own component under
-// components/fields/. This file only owns what every type shares — the
-// UFormField wrapper (label, required marker, hint) and label auto-humanization.
 import type { Component } from 'vue'
 import type { FieldDef, FieldType } from '#shared/types'
 import FieldText from './fields/FieldText.vue'
@@ -54,8 +51,5 @@ const CONTROLS: Record<Exclude<FieldType, 'hidden'>, Component> = {
 const control = computed(
   () => CONTROLS[(props.field.type ?? 'text') as Exclude<FieldType, 'hidden'>]
 )
-
-// Label is optional and constructed from the name — 'dateOfBirth' /
-// 'date_of_birth' both become 'Date of birth'.
 const label = computed(() => props.field.label ?? humanize(props.field.name))
 </script>

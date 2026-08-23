@@ -27,6 +27,8 @@ export interface PaymentFilter {
   direction?: PaymentDirection
   startDate?: string
   endDate?: string
+  minAmount?: number
+  maxAmount?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
   page?: number

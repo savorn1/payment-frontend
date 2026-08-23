@@ -46,6 +46,8 @@
         :loading="loading"
         refreshable
         numbered
+        exportable
+        export-filename="users"
         :row-number-start="(page - 1) * pageSize"
         @refresh="load"
       >

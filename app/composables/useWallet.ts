@@ -33,6 +33,8 @@ export interface WalletTransactionFilter {
   status?: TransactionStatus
   startDate?: string
   endDate?: string
+  minAmount?: number
+  maxAmount?: number
   search?: string
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
