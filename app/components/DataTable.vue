@@ -28,7 +28,7 @@
               :key="column.key"
               :model-value="!hiddenColumnKeys.has(column.key)"
               :label="column.label || humanize(column.key)"
-              @update:model-value="(v: boolean) => setColumnVisible(column.key, v)"
+              @update:model-value="(v: boolean | 'indeterminate') => setColumnVisible(column.key, v === true)"
             />
           </div>
         </template>
@@ -76,14 +76,14 @@
           <UCheckbox
             :model-value="allSelected"
             :indeterminate="someSelected"
-            @update:model-value="toggleSelectAll"
+            @update:model-value="(v: boolean | 'indeterminate') => toggleSelectAll(v === true)"
             @click.stop
           />
         </template>
         <template v-if="selectable" #__select-cell="{ row }">
           <UCheckbox
             :model-value="isSelected(row.original)"
-            @update:model-value="(v: boolean) => toggleRow(row.original, v)"
+            @update:model-value="(v: boolean | 'indeterminate') => toggleRow(row.original, v === true)"
             @click.stop
           />
         </template>

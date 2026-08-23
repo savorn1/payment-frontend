@@ -1,8 +1,4 @@
-// Auth state persisted in cookies (SSR-safe, survives reloads). Talks to
-// payment-wallet's AuthController: POST /api/auth/login|refresh|logout.
-// The access token is short-lived (24h, jwt.expiration); the refresh token
-// (7d, single-use, revocable server-side via refresh_tokens) lets useApi()
-// silently mint a new access token instead of forcing a full re-login.
+
 
 export interface LoginRequest {
   username: string
@@ -67,12 +63,6 @@ export function useAuth() {
     return res
   }
 
-  // Every useApi() call site gets its own closure, so a naive dedup local to useApi()
-  // only covers 401s within a single composable instance. Keying the dedup off this
-  // module-level variable (shared by every useAuth()/useApi() call in the process)
-  // makes concurrent 401s share the same in-flight refresh instead of racing each
-  // other — the refresh token is single-use/rotated server-side, so two independent
-  // refreshes racing would fail the second one and force-log-out a valid session.
   const refreshOnce = dedupeRefresh(refresh)
 
   async function forgotPassword(email: string) {
@@ -124,10 +114,6 @@ export function useAuth() {
 }
 
 function dedupeRefresh(refresh: () => Promise<AuthResponse>) {
-  // useState (not a bare module-level variable) so the in-flight promise is
-  // scoped to the current Nuxt app instance — SSR reuses one Node process
-  // across every visitor's request, and a module-level variable would leak
-  // one user's in-flight refresh into another user's concurrent request.
   return function refreshOnce() {
     const inflight = useState<Promise<AuthResponse> | null>('auth-refresh-inflight', () => null)
     if (!inflight.value) {
