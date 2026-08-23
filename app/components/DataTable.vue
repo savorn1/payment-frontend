@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-      v-if="refreshable || (showColumnToggle && rows.length > 0)"
+      v-if="refreshable || exportable || (showColumnToggle && rows.length > 0)"
       class="flex justify-end items-center gap-2 mb-2"
     >
       <UButton
@@ -15,6 +15,12 @@
       >
         Refresh
       </UButton>
+
+      <UDropdownMenu v-if="exportable && rows.length > 0" :items="exportItems">
+        <UButton size="xs" variant="soft" color="neutral" icon="i-lucide-download" trailing-icon="i-lucide-chevron-down">
+          Export
+        </UButton>
+      </UDropdownMenu>
 
       <UPopover v-if="showColumnToggle && rows.length > 0">
         <UButton size="xs" variant="soft" color="neutral" icon="i-lucide-columns-3">
@@ -170,15 +176,25 @@ const props = withDefaults(
     /** Adds a checkbox column and a "N selected" bulk-actions bar (see the
      * `bulk-actions` slot) driven by `v-model:selected`. */
     selectable?: boolean
+    /** Shows an "Export" menu (CSV / Excel / PDF / Copy) that exports the
+     * currently-loaded `rows` (not the full server-side dataset), formatted
+     * the same way each column renders on screen. */
+    exportable?: boolean
+    /** Base filename (without extension) for CSV/Excel/PDF exports. */
+    exportFilename?: string
   }>(),
   {
     columnsToggleable: true,
     refreshable: false,
     numbered: false,
     rowNumberStart: 0,
-    selectable: false
+    selectable: false,
+    exportable: false,
+    exportFilename: 'export'
   }
 )
+
+const toast = useToast()
 
 const selected = defineModel<T[]>('selected', { default: () => [] })
 const sort = defineModel<{ column: string; direction: 'asc' | 'desc' } | undefined>('sort')
@@ -248,6 +264,87 @@ const { tableUi, rowEvenClass, sortButtonClass } = useTableTheme()
 function rowClass(row: { index: number }) {
   return row.index % 2 === 1 ? rowEvenClass.value : ''
 }
+
+// Export: CSV / Excel / PDF / Copy, all client-side, all built from whatever's
+// currently loaded in `rows` (not the full server-side dataset if the caller
+// paginates) using the same per-column formatting ColumnValue renders on
+// screen, so every export matches what's visible on screen.
+function csvEscape(value: string): string {
+  if (/[",\n]/.test(value)) {
+    return `"${value.replace(/"/g, '""')}"`
+  }
+  return value
+}
+
+function exportHeaderAndRows(): { header: string[]; rows: string[][] } {
+  const cols = visibleColumns.value
+  const header = cols.map((c) => c.label ?? humanize(c.key))
+  const bodyRows = props.rows.map((row) => cols.map((c) => formatColumnText(c, row)))
+  return { header, rows: bodyRows }
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
+function exportCsv() {
+  const { header, rows } = exportHeaderAndRows()
+  const lines = [header, ...rows].map((line) => line.map(csvEscape).join(','))
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
+  downloadBlob(blob, `${props.exportFilename}.csv`)
+}
+
+async function exportExcel() {
+  const { header, rows } = exportHeaderAndRows()
+  const XLSX = await import('xlsx')
+  const worksheet = XLSX.utils.aoa_to_sheet([header, ...rows])
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1')
+  XLSX.writeFile(workbook, `${props.exportFilename}.xlsx`)
+}
+
+async function exportPdf() {
+  const { header, rows } = exportHeaderAndRows()
+  const [{ default: JsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable')
+  ])
+  // Landscape, since these tables tend to be wide (many columns).
+  const doc = new JsPDF({ orientation: 'landscape' })
+  autoTable(doc, { head: [header], body: rows, styles: { fontSize: 8 } })
+  doc.save(`${props.exportFilename}.pdf`)
+}
+
+async function copyToTable() {
+  const { header, rows } = exportHeaderAndRows()
+  // Tab-separated so pasting into a spreadsheet lands one value per cell;
+  // tabs/newlines inside a value would break that, so they're flattened to a
+  // single space (rare in this app's data — ids, amounts, short text).
+  const sanitize = (value: string) => value.replace(/[\t\n\r]+/g, ' ')
+  const tsv = [header, ...rows].map((line) => line.map(sanitize).join('\t')).join('\n')
+  try {
+    await navigator.clipboard.writeText(tsv)
+    toast.add({ title: 'Copied to clipboard', color: 'success' })
+  } catch {
+    toast.add({ title: 'Could not copy to clipboard', color: 'error' })
+  }
+}
+
+const exportItems = [
+  [
+    { label: 'CSV', icon: 'i-lucide-file-text', onSelect: exportCsv },
+    { label: 'Excel', icon: 'i-lucide-file-spreadsheet', onSelect: exportExcel },
+    { label: 'PDF', icon: 'i-lucide-file-type', onSelect: exportPdf },
+    { label: 'Copy', icon: 'i-lucide-copy', onSelect: copyToTable }
+  ]
+]
 
 // Every column is a TanStack "display column" (id + header/cell only, no
 // accessorKey) — value extraction is already handled by <ColumnValue> and

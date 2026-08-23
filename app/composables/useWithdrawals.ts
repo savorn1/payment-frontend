@@ -47,6 +47,40 @@ export interface CreateWithdrawalPayload {
   destination: string
 }
 
+// Platform-wide listing (admin-only) — same shape as Withdrawal, plus a
+// resolved username since an admin has no built-in relationship to the
+// requester.
+export interface AdminWithdrawal {
+  id: number
+  userId: number
+  username: string | null
+  amount: number
+  feeAmount: number
+  totalAmount: number
+  currency: string
+  destination: string
+  status: WithdrawalStatus
+  rejectionReason: string | null
+  failureReason: string | null
+  provider: string | null
+  providerReference: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AdminWithdrawalFilter {
+  status?: WithdrawalStatus
+  userId?: number
+  startDate?: string
+  endDate?: string
+  minAmount?: number
+  maxAmount?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  size?: number
+}
+
 interface ApiEnvelope<T> {
   traceId: string
   statusCode: number
@@ -100,5 +134,10 @@ export function useWithdrawals() {
     return res.data
   }
 
-  return { listMine, get, create, quote }
+  // Admin-only: platform-wide, not scoped to a single user's userId.
+  function listAll(filter: AdminWithdrawalFilter = {}) {
+    return api<PageEnvelope<AdminWithdrawal>>('/api/withdrawals', { query: filter })
+  }
+
+  return { listMine, listAll, get, create, quote }
 }

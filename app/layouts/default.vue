@@ -59,7 +59,12 @@ const items = computed<NavigationMenuItem[]>(() => [
     ? [
         { label: 'Administration', type: 'label' as const },
         { label: 'Users', to: '/users', icon: 'i-lucide-users' },
-        { label: 'Transfer Management', to: '/transfers', icon: 'i-lucide-arrow-left-right' }
+        { label: 'Transfer Management', to: '/transfers', icon: 'i-lucide-arrow-left-right' },
+        { label: 'Payment Gateway', to: '/gateways', icon: 'i-lucide-plug-zap' },
+        { label: 'Webhook Management', to: '/webhooks', icon: 'i-lucide-webhook' },
+        { label: 'Fees & Limits', to: '/fees-limits', icon: 'i-lucide-percent' },
+        { label: 'Reconciliation', to: '/reconciliation', icon: 'i-lucide-scale' },
+        { label: 'Reports', to: '/reports', icon: 'i-lucide-bar-chart-3' }
       ]
     : [])
 ])

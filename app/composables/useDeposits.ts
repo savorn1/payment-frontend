@@ -32,6 +32,35 @@ export interface DepositFilter {
   size?: number
 }
 
+// Platform-wide listing (admin-only) — same shape as Deposit, plus a resolved
+// username since an admin has no built-in relationship to the depositor.
+export interface AdminDeposit {
+  id: number
+  userId: number
+  username: string | null
+  amount: number
+  currency: string
+  status: DepositStatus
+  provider: string
+  providerReference: string | null
+  failureReason: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AdminDepositFilter {
+  status?: DepositStatus
+  userId?: number
+  startDate?: string
+  endDate?: string
+  minAmount?: number
+  maxAmount?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  size?: number
+}
+
 interface ApiEnvelope<T> {
   traceId: string
   statusCode: number
@@ -61,6 +90,11 @@ export function useDeposits() {
 
   function listMine(filter: DepositFilter = {}) {
     return api<PageEnvelope<Deposit>>('/api/deposits/me', { query: filter })
+  }
+
+  // Admin-only: platform-wide, not scoped to a single user's userId.
+  function listAll(filter: AdminDepositFilter = {}) {
+    return api<PageEnvelope<AdminDeposit>>('/api/deposits', { query: filter })
   }
 
   async function get(id: number) {
@@ -107,5 +141,5 @@ export function useDeposits() {
     return res.data
   }
 
-  return { listMine, get, create, checkStatus, simulateSuccess, simulateFailed, cancel, refund }
+  return { listMine, listAll, get, create, checkStatus, simulateSuccess, simulateFailed, cancel, refund }
 }

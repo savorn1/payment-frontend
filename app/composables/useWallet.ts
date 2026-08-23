@@ -40,6 +40,39 @@ export interface WalletTransactionFilter {
   size?: number
 }
 
+// Platform-wide ledger listing (admin-only) — same shape as WalletTransaction,
+// plus the owning userId/username (the entity itself only carries walletId).
+export interface AdminWalletTransaction {
+  id: number
+  walletId: number
+  userId: number | null
+  username: string | null
+  type: TransactionType
+  status: TransactionStatus
+  amount: number
+  availableBalanceAfter: number
+  pendingBalanceAfter: number
+  referenceId: string | null
+  description: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AdminWalletTransactionFilter {
+  type?: TransactionType
+  status?: TransactionStatus
+  userId?: number
+  startDate?: string
+  endDate?: string
+  minAmount?: number
+  maxAmount?: number
+  search?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  size?: number
+}
+
 interface ApiEnvelope<T> {
   traceId: string
   statusCode: number
@@ -83,5 +116,10 @@ export function useWallet() {
     return api<PageEnvelope<WalletTransaction>>('/api/wallets/me/transactions', { query: filter })
   }
 
-  return { getMine, createMine, listMyTransactions }
+  // Admin-only: platform-wide ledger, not scoped to a single user.
+  function listAllTransactions(filter: AdminWalletTransactionFilter = {}) {
+    return api<PageEnvelope<AdminWalletTransaction>>('/api/wallets/transactions', { query: filter })
+  }
+
+  return { getMine, createMine, listMyTransactions, listAllTransactions }
 }

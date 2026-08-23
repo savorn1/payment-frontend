@@ -25,7 +25,10 @@ const STATUS_META: Record<string, { color: StatusColor; icon: string }> = {
   REVERSED: { color: 'neutral', icon: 'i-lucide-undo-2' },
   CANCELLED: { color: 'neutral', icon: 'i-lucide-ban' },
   VOIDED: { color: 'neutral', icon: 'i-lucide-ban' },
-  DRAFT: { color: 'neutral', icon: 'i-lucide-pencil' }
+  DRAFT: { color: 'neutral', icon: 'i-lucide-pencil' },
+  UP: { color: 'success', icon: 'i-lucide-check-circle' },
+  DOWN: { color: 'error', icon: 'i-lucide-x-circle' },
+  DISABLED: { color: 'neutral', icon: 'i-lucide-power-off' }
 }
 
 const DEFAULT_META: { color: StatusColor; icon: string } = {
