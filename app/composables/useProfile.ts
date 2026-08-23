@@ -7,6 +7,7 @@ export interface Profile {
   email: string | null
   role: string
   enabled: boolean
+  tableTheme: string | null
 }
 
 interface ApiEnvelope<T> {
@@ -36,5 +37,13 @@ export function useProfile() {
     await api('/api/users/me/password', { method: 'PUT', body: payload })
   }
 
-  return { getProfile, updateProfile, changePassword }
+  async function updateTableTheme(theme: string) {
+    const res = await api<ApiEnvelope<Profile>>('/api/users/me/table-theme', {
+      method: 'PUT',
+      body: { theme }
+    })
+    return res.data
+  }
+
+  return { getProfile, updateProfile, changePassword, updateTableTheme }
 }

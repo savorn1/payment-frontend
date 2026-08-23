@@ -69,6 +69,8 @@
         :data="rows"
         :columns="uColumns"
         :loading="loading"
+        :ui="tableUi"
+        :meta="{ class: { tr: rowClass } }"
         class="hidden sm:block"
         @select="(_e: Event, row: { original: T }) => emit('select', row.original)"
       >
@@ -98,6 +100,7 @@
             v-if="column.sortable"
             type="button"
             class="flex items-center gap-1 font-medium"
+            :class="sortButtonClass"
             @click="toggleSort(column.key)"
           >
             {{ column.label ?? humanize(column.key) }}
@@ -237,6 +240,14 @@ function toggleSelectAll(value: boolean) {
 
 const ROW_NUMBER_KEY = '__rowNumber'
 const SELECT_KEY = '__select'
+
+const { tableUi, rowEvenClass, sortButtonClass } = useTableTheme()
+
+// Zebra striping — UTable styles every row uniformly, so alternating shading
+// goes through `meta.class.tr`, which TanStack resolves per-row via `row.index`.
+function rowClass(row: { index: number }) {
+  return row.index % 2 === 1 ? rowEvenClass.value : ''
+}
 
 // Every column is a TanStack "display column" (id + header/cell only, no
 // accessorKey) — value extraction is already handled by <ColumnValue> and

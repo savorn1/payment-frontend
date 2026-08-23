@@ -2,7 +2,7 @@
   <div>
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Payments</h1>
-      <UButton to="/payments/new" icon="i-lucide-plus">New payment</UButton>
+      <UButton icon="i-lucide-plus" @click="showCreate = true">New payment</UButton>
     </div>
 
     <UAlert
@@ -34,20 +34,32 @@
         </template>
       </DataTable>
     </UCard>
+
+    <PaymentCreateModal
+      v-model="showCreate"
+      :loading="creating"
+      :error="createError"
+      @submit="onCreatePayment"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { ColumnDef } from '#shared/types'
-import type { Payment } from '~/composables/usePayments'
+import type { CreatePaymentRequest, Payment } from '~/composables/usePayments'
 
-const { listMine } = usePayments()
+const { listMine, create } = usePayments()
 const { getMine } = useWallet()
+const toast = useToast()
 
 const rows = ref<Payment[]>([])
 const loading = ref(false)
 const error = ref('')
 const myUserId = ref<number>()
+
+const showCreate = ref(false)
+const creating = ref(false)
+const createError = ref('')
 
 const sort = ref<{ column: string; direction: 'asc' | 'desc' } | undefined>({
   column: 'createdAt',
@@ -55,7 +67,7 @@ const sort = ref<{ column: string; direction: 'asc' | 'desc' } | undefined>({
 })
 
 const columns: ColumnDef<Payment>[] = [
-  { key: 'id', label: 'Reference', sortable: true },
+  // { key: 'id', label: 'Reference', sortable: true },
   { key: 'direction', label: 'Direction' },
   { key: 'counterparty', label: 'Counterparty' },
   { key: 'amount', type: 'currency', sortable: true },
@@ -79,6 +91,21 @@ async function load() {
     error.value = apiErrorMessage(err)
   } finally {
     loading.value = false
+  }
+}
+
+async function onCreatePayment(payload: CreatePaymentRequest) {
+  creating.value = true
+  createError.value = ''
+  try {
+    const payment = await create(payload)
+    showCreate.value = false
+    toast.add({ title: 'Payment created', description: `#${payment.id}`, color: 'success' })
+    await load()
+  } catch (err) {
+    createError.value = apiErrorMessage(err)
+  } finally {
+    creating.value = false
   }
 }
 

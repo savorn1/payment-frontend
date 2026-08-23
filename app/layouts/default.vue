@@ -50,7 +50,9 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 const { username, isAdmin, logout } = useAuth()
 
 const items = computed<NavigationMenuItem[]>(() => [
-  { label: 'Home', to: '/', icon: 'i-lucide-home' },
+  { label: 'Dashboard', to: '/', icon: 'i-lucide-layout-dashboard' },
+  { label: 'Wallet', to: '/wallet', icon: 'i-lucide-wallet' },
+  { label: 'Deposits', to: '/deposits', icon: 'i-lucide-arrow-down-to-line' },
   { label: 'Payments', to: '/payments', icon: 'i-lucide-credit-card' },
   ...(isAdmin.value
     ? [

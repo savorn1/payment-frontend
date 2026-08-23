@@ -17,15 +17,6 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
-  // app/composables/** is auto-imported by Nuxt's default convention already;
-  // shared/composables is this project's spot for composables reused across
-  // features that aren't tied to one page (mirrors loan-frontend's layout).
-  // `imports.dirs` entries resolve relative to srcDir (app/ in Nuxt 4), so this
-  // needs the explicit rootDir alias (~~) to reach the top-level shared/ folder.
-  imports: {
-    dirs: ['~~/shared/composables']
-  },
-
   app: {
     head: {
       title: 'Payment'
