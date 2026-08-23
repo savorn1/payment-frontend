@@ -53,11 +53,13 @@ const items = computed<NavigationMenuItem[]>(() => [
   { label: 'Dashboard', to: '/', icon: 'i-lucide-layout-dashboard' },
   { label: 'Wallet', to: '/wallet', icon: 'i-lucide-wallet' },
   { label: 'Deposits', to: '/deposits', icon: 'i-lucide-arrow-down-to-line' },
+  { label: 'Withdrawals', to: '/withdrawals', icon: 'i-lucide-arrow-up-from-line' },
   { label: 'Payments', to: '/payments', icon: 'i-lucide-credit-card' },
   ...(isAdmin.value
     ? [
         { label: 'Administration', type: 'label' as const },
-        { label: 'Users', to: '/users', icon: 'i-lucide-users' }
+        { label: 'Users', to: '/users', icon: 'i-lucide-users' },
+        { label: 'Transfer Management', to: '/transfers', icon: 'i-lucide-arrow-left-right' }
       ]
     : [])
 ])

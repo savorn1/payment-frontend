@@ -4,7 +4,7 @@
 // simulateFailed pushes it through the same signed-callback path a genuine
 // webhook would use (see SamplePaymentGateway's class comment on the backend).
 
-export type DepositStatus = 'PENDING' | 'SUCCESS' | 'FAILED'
+export type DepositStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'CANCELLED' | 'REFUNDED'
 
 export interface Deposit {
   id: number
@@ -95,5 +95,17 @@ export function useDeposits() {
     return res.data
   }
 
-  return { listMine, get, create, checkStatus, simulateSuccess, simulateFailed }
+  // Self-service (owner or admin), only while still PENDING.
+  async function cancel(id: number) {
+    const res = await api<ApiEnvelope<Deposit>>(`/api/deposits/${id}/cancel`, { method: 'POST' })
+    return res.data
+  }
+
+  // Admin-only — reverses a SUCCESS deposit's wallet credit.
+  async function refund(id: number) {
+    const res = await api<ApiEnvelope<Deposit>>(`/api/deposits/${id}/refund`, { method: 'POST' })
+    return res.data
+  }
+
+  return { listMine, get, create, checkStatus, simulateSuccess, simulateFailed, cancel, refund }
 }

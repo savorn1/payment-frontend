@@ -45,6 +45,24 @@ export interface DashboardSummary {
   recentTransactions: WalletTransactionEntry[]
 }
 
+export interface DailyActivityPoint {
+  date: string
+  credited: number
+  debited: number
+}
+
+export interface PlatformSummary {
+  totalUsers: number
+  totalWalletBalance: number
+  totalDeposits: number
+  depositCount: number
+  totalWithdrawals: number
+  withdrawalCount: number
+  totalTransfers: number
+  transferCount: number
+  paymentStatusSummary: PaymentStatusSummary
+}
+
 interface ApiEnvelope<T> {
   traceId: string
   statusCode: number
@@ -60,5 +78,16 @@ export function useDashboard() {
     return res.data
   }
 
-  return { getSummary }
+  async function getActivity(days = 30) {
+    const res = await api<ApiEnvelope<DailyActivityPoint[]>>('/api/dashboard/me/activity', { query: { days } })
+    return res.data
+  }
+
+  // Admin-only — platform-wide totals across every user.
+  async function getPlatformSummary() {
+    const res = await api<ApiEnvelope<PlatformSummary>>('/api/dashboard/admin/summary')
+    return res.data
+  }
+
+  return { getSummary, getActivity, getPlatformSummary }
 }

@@ -39,6 +39,48 @@ export interface CreatePaymentRequest {
   description?: string
 }
 
+export interface PaymentQuote {
+  amount: number
+  feeAmount: number
+  totalAmount: number
+}
+
+export interface RecipientOption {
+  id: number
+  username: string
+}
+
+// Platform-wide listing (admin-only) — same shape as Payment, plus resolved
+// usernames for both sides since an admin has no built-in relationship to
+// either party the way a self-service caller does.
+export interface AdminPayment {
+  id: number
+  payerUserId: number
+  payerUsername: string | null
+  payeeUserId: number
+  payeeUsername: string | null
+  amount: number
+  feeAmount: number
+  totalAmount: number
+  currency: string
+  status: PaymentStatus
+  description: string | null
+  failureReason: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AdminPaymentFilter {
+  status?: PaymentStatus
+  userId?: number
+  startDate?: string
+  endDate?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  page?: number
+  size?: number
+}
+
 interface ApiEnvelope<T> {
   traceId: string
   statusCode: number
@@ -86,5 +128,22 @@ export function usePayments() {
     return res.data
   }
 
-  return { listMine, get, create }
+  // Fee/total preview computed via the same formula createPayment uses —
+  // never drifts (free by default, unlike deposits/withdrawals).
+  async function quote(amount: number) {
+    const res = await api<ApiEnvelope<PaymentQuote>>('/api/payments/quote', { query: { amount } })
+    return res.data
+  }
+
+  async function searchRecipients(query: string) {
+    const res = await api<ApiEnvelope<RecipientOption[]>>('/api/payments/recipients/search', { query: { query } })
+    return res.data
+  }
+
+  // Admin-only: platform-wide, not scoped to a single user's payer/payee id.
+  function listAll(filter: AdminPaymentFilter = {}) {
+    return api<PageEnvelope<AdminPayment>>('/api/payments', { query: filter })
+  }
+
+  return { listMine, get, create, quote, searchRecipients, listAll }
 }

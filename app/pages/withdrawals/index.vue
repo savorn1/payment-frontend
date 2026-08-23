@@ -1,8 +1,8 @@
 <template>
   <div>
     <div class="flex items-center justify-between mb-4">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Deposits</h1>
-      <UButton icon="i-lucide-plus" @click="showCreate = true">New deposit</UButton>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Withdrawals</h1>
+      <UButton icon="i-lucide-plus" @click="showCreate = true">New withdrawal</UButton>
     </div>
 
     <UAlert
@@ -20,29 +20,29 @@
 
     <UModal
       v-model:open="showDetail"
-      :title="selectedDeposit ? `${formatCurrency(selectedDeposit.amount)} deposit` : 'Deposit detail'"
+      :title="selectedWithdrawal ? `${formatCurrency(selectedWithdrawal.amount)} withdrawal` : 'Withdrawal detail'"
     >
       <template #body>
-        <DepositPaymentPanel v-if="selectedDeposit" :deposit="selectedDeposit" @update="onDepositUpdate" />
+        <WithdrawalStatusPanel v-if="selectedWithdrawal" :withdrawal="selectedWithdrawal" />
       </template>
     </UModal>
 
-    <DepositCreateModal
+    <WithdrawalCreateModal
       v-model="showCreate"
       :loading="creating"
       :error="createError"
-      @submit="onCreateDeposit"
+      @submit="onCreateWithdrawal"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { ColumnDef } from '#shared/types'
-import type { Deposit } from '~/composables/useDeposits'
+import type { Withdrawal } from '~/composables/useWithdrawals'
 
-const { listMine, create } = useDeposits()
+const { listMine, create } = useWithdrawals()
 
-const rows = ref<Deposit[]>([])
+const rows = ref<Withdrawal[]>([])
 const loading = ref(false)
 const error = ref('')
 
@@ -50,10 +50,11 @@ const showCreate = ref(false)
 const creating = ref(false)
 const createError = ref('')
 
-const columns: ColumnDef<Deposit>[] = [
+const columns: ColumnDef<Withdrawal>[] = [
   { key: 'amount', type: 'currency', sortable: true },
+  { key: 'feeAmount', label: 'Fee', type: 'currency' },
+  { key: 'destination' },
   { key: 'status', type: 'status' },
-  { key: 'provider' },
   { key: 'createdAt', label: 'Date', type: 'datetime', sortable: true }
 ]
 
@@ -71,25 +72,21 @@ async function load() {
 }
 
 const showDetail = ref(false)
-const selectedDeposit = ref<Deposit | null>(null)
+const selectedWithdrawal = ref<Withdrawal | null>(null)
 
-function openDetail(row: Deposit) {
-  selectedDeposit.value = row
+function openDetail(row: Withdrawal) {
+  selectedWithdrawal.value = row
   showDetail.value = true
 }
 
-async function onCreateDeposit(amount: number) {
-  if (!amount || amount <= 0) {
-    createError.value = 'Enter an amount greater than zero'
-    return
-  }
+async function onCreateWithdrawal(payload: { amount: number; destination: string }) {
   creating.value = true
   createError.value = ''
   try {
-    const deposit = await create(amount)
+    const withdrawal = await create(payload)
     showCreate.value = false
-    rows.value = [deposit, ...rows.value]
-    openDetail(deposit)
+    rows.value = [withdrawal, ...rows.value]
+    openDetail(withdrawal)
   } catch (err) {
     createError.value = apiErrorMessage(err)
   } finally {
@@ -97,17 +94,11 @@ async function onCreateDeposit(amount: number) {
   }
 }
 
-function onDepositUpdate(updated: Deposit) {
-  selectedDeposit.value = updated
-  const idx = rows.value.findIndex((r) => r.id === updated.id)
-  if (idx !== -1) rows.value[idx] = updated
-}
-
 const route = useRoute()
 
 onMounted(() => {
   load()
-  // Supports the Dashboard's "New deposit" quick action (/deposits?new=1).
+  // Supports the Dashboard's "New withdrawal" quick action (/withdrawals?new=1).
   if (route.query.new) showCreate.value = true
 })
 </script>

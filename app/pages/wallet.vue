@@ -11,17 +11,24 @@
       icon="i-lucide-triangle-alert"
     />
 
-    <div v-else-if="walletMissing" class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 max-w-xs">
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
-        You don't have a wallet yet.
-      </p>
-      <UButton size="sm" :loading="creatingWallet" @click="onCreateWallet">Create wallet</UButton>
-    </div>
+    <WalletMissingPrompt v-else-if="walletMissing" :loading="creatingWallet" @create="onCreateWallet" />
 
     <template v-else>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-        <StatTile label="Available balance" :value="formatCurrency(wallet?.availableBalance)" icon="i-lucide-wallet" />
-        <StatTile label="Pending balance" :value="formatCurrency(wallet?.pendingBalance)" icon="i-lucide-clock" />
+        <StatTile
+          label="Available balance"
+          :value="formatCurrencyCompact(wallet?.availableBalance)"
+          icon="i-lucide-wallet"
+          color="primary"
+          :loading="walletLoading && !wallet"
+        />
+        <StatTile
+          label="Pending balance"
+          :value="formatCurrencyCompact(wallet?.pendingBalance)"
+          icon="i-lucide-clock"
+          color="warning"
+          :loading="walletLoading && !wallet"
+        />
       </div>
 
       <UCard class="mb-4">

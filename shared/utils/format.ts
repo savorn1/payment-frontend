@@ -5,6 +5,19 @@ export function formatCurrency(value: number | null | undefined): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
 }
 
+// For headline figures (stat tiles) that have limited width to work with —
+// full precision (formatCurrency) truncates ($1,000,035.00 → "$1,000,035…")
+// instead of just showing a shorter, still-accurate number ($1.0M).
+export function formatCurrencyCompact(value: number | null | undefined): string {
+  if (value === null || value === undefined) return '—'
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    notation: 'compact',
+    maximumFractionDigits: 1
+  }).format(value)
+}
+
 // Backend LocalDateTime values arrive with no timezone suffix (e.g. "2026-08-08T14:09:07"),
 // which the JS Date parser treats as local time — local to whichever environment reads it.
 // That differs between SSR (the server's timezone) and the browser (the viewer's), shifting

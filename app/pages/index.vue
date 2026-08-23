@@ -1,6 +1,25 @@
 <template>
   <div>
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Dashboard</h1>
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Welcome back{{ username ? `, ${username}` : '' }}
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <UButton icon="i-lucide-refresh-cw" variant="ghost" color="neutral" :loading="loading" @click="loadSummary">
+          Refresh
+        </UButton>
+        <UButton to="/deposits?new=1" icon="i-lucide-arrow-down-to-line" variant="soft" color="neutral">
+          New deposit
+        </UButton>
+        <UButton to="/withdrawals?new=1" icon="i-lucide-arrow-up-from-line" variant="soft" color="neutral">
+          New withdrawal
+        </UButton>
+        <UButton to="/payments?new=1" icon="i-lucide-plus">New payment</UButton>
+      </div>
+    </div>
 
     <UAlert
       v-if="error && !walletMissing"
@@ -11,38 +30,45 @@
       icon="i-lucide-triangle-alert"
     />
 
-    <div v-else-if="walletMissing" class="rounded-xl border border-gray-200 dark:border-gray-800 p-5 max-w-xs">
-      <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
-        You don't have a wallet yet.
-      </p>
-      <UButton size="sm" :loading="creating" @click="onCreateWallet">Create wallet</UButton>
-    </div>
+    <WalletMissingPrompt v-else-if="walletMissing" :loading="creating" @create="onCreateWallet" />
 
     <template v-else>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatTile
           label="Total balance"
-          :value="formatCurrency(summary?.walletBalance)"
-          :sublabel="summary ? `${formatCurrency(summary.pendingBalance)} pending` : undefined"
+          :value="formatCurrencyCompact(summary?.walletBalance)"
+          :sublabel="summary ? `${formatCurrencyCompact(summary.pendingBalance)} pending` : undefined"
           icon="i-lucide-wallet"
+          color="primary"
+          to="/wallet"
+          :loading="loading && !summary"
         />
         <StatTile
           label="Total deposits"
-          :value="formatCurrency(summary?.totalDeposits)"
+          :value="formatCurrencyCompact(summary?.totalDeposits)"
           :sublabel="summary ? countLabel(summary.depositCount, 'deposit') : undefined"
           icon="i-lucide-arrow-down-to-line"
+          color="success"
+          to="/deposits"
+          :loading="loading && !summary"
         />
         <StatTile
           label="Total withdrawals"
-          :value="formatCurrency(summary?.totalWithdrawals)"
+          :value="formatCurrencyCompact(summary?.totalWithdrawals)"
           :sublabel="summary ? countLabel(summary.withdrawalCount, 'withdrawal') : undefined"
           icon="i-lucide-arrow-up-from-line"
+          color="warning"
+          to="/withdrawals"
+          :loading="loading && !summary"
         />
         <StatTile
           label="Total transfers"
-          :value="formatCurrency(transferTotal)"
+          :value="formatCurrencyCompact(transferTotal)"
           :sublabel="summary ? countLabel(summary.transferCount, 'transfer') : undefined"
           icon="i-lucide-arrow-left-right"
+          color="info"
+          to="/payments"
+          :loading="loading && !summary"
         />
       </div>
 
@@ -121,27 +147,92 @@
 
       <UCard class="mt-4">
         <template #header>
-          <div class="flex items-center gap-2">
-            <UIcon name="i-lucide-history" class="w-4 h-4 text-gray-400 dark:text-gray-500" />
-            <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              Recent transactions
-            </h2>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <UIcon name="i-lucide-activity" class="w-4 h-4 text-gray-400 dark:text-gray-500" />
+              <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                Activity (last 30 days)
+              </h2>
+            </div>
+            <span v-if="activity.length > 0" class="text-xs text-gray-400 dark:text-gray-500">
+              {{ formatCurrency(activityTotals.credited) }} in · {{ formatCurrency(activityTotals.debited) }} out
+            </span>
+          </div>
+        </template>
+        <ActivityChart v-if="activity.length > 0" :points="activity" />
+        <EmptyState v-else icon="i-lucide-activity" title="No activity yet" />
+      </UCard>
+
+      <UCard class="mt-4">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <UIcon name="i-lucide-history" class="w-4 h-4 text-gray-400 dark:text-gray-500" />
+              <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                Recent transactions
+              </h2>
+            </div>
+            <UButton to="/wallet" size="xs" variant="link" color="neutral" trailing-icon="i-lucide-arrow-right">
+              View all
+            </UButton>
           </div>
         </template>
         <DataTable :rows="summary?.recentTransactions ?? []" :columns="transactionColumns" :loading="loading" />
       </UCard>
+    </template>
+
+    <template v-if="isAdmin && platform">
+      <div class="flex items-center gap-2 mt-8 mb-4 pt-6 border-t border-gray-200 dark:border-gray-800">
+        <UIcon name="i-lucide-globe" class="w-4 h-4 text-gray-400 dark:text-gray-500" />
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Platform overview</h2>
+        <span class="text-sm text-gray-400 dark:text-gray-500">
+          — across all {{ countLabel(platform.totalUsers, 'user') }}
+        </span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatTile
+          label="Total users"
+          :value="String(platform.totalUsers)"
+          icon="i-lucide-users"
+          color="neutral"
+          to="/users"
+        />
+        <StatTile
+          label="Platform balance"
+          :value="formatCurrencyCompact(platform.totalWalletBalance)"
+          icon="i-lucide-landmark"
+          color="primary"
+        />
+        <StatTile
+          label="Total deposits"
+          :value="formatCurrencyCompact(platform.totalDeposits)"
+          :sublabel="countLabel(platform.depositCount, 'deposit')"
+          icon="i-lucide-arrow-down-to-line"
+          color="success"
+        />
+        <StatTile
+          label="Total transfers"
+          :value="formatCurrencyCompact(platform.totalTransfers)"
+          :sublabel="countLabel(platform.transferCount, 'transfer')"
+          icon="i-lucide-arrow-left-right"
+          color="info"
+        />
+      </div>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { ColumnDef } from '#shared/types'
-import type { WalletTransactionEntry } from '~/composables/useDashboard'
+import type { DailyActivityPoint, WalletTransactionEntry } from '~/composables/useDashboard'
 
-const { getSummary } = useDashboard()
+const { getSummary, getActivity, getPlatformSummary } = useDashboard()
 const { createMine } = useWallet()
+const { isAdmin, username } = useAuth()
 
 const summary = ref<Awaited<ReturnType<typeof getSummary>>>()
+const activity = ref<DailyActivityPoint[]>([])
+const platform = ref<Awaited<ReturnType<typeof getPlatformSummary>>>()
 const loading = ref(true)
 const creating = ref(false)
 const error = ref('')
@@ -152,7 +243,10 @@ async function loadSummary() {
   error.value = ''
   walletMissing.value = false
   try {
-    summary.value = await getSummary()
+    const [summaryRes, activityRes] = await Promise.all([getSummary(), getActivity(30)])
+    summary.value = summaryRes
+    activity.value = activityRes
+    if (isAdmin.value) platform.value = await getPlatformSummary()
   } catch (err) {
     const status = (err as { response?: { status?: number } })?.response?.status
     if (status === 404) {
@@ -177,6 +271,16 @@ async function onCreateWallet() {
     creating.value = false
   }
 }
+
+const activityTotals = computed(() =>
+  activity.value.reduce(
+    (totals, point) => ({
+      credited: totals.credited + point.credited,
+      debited: totals.debited + point.debited
+    }),
+    { credited: 0, debited: 0 }
+  )
+)
 
 const transferTotal = computed(() =>
   summary.value ? summary.value.totalTransfersSent + summary.value.totalTransfersReceived : undefined

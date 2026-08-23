@@ -23,6 +23,7 @@
         refreshable
         numbered
         @refresh="load"
+        @select="openDetail"
       >
         <template #direction-data="{ row }">
           <UBadge :color="row.payerUserId === myUserId ? 'neutral' : 'success'" variant="subtle">
@@ -35,6 +36,15 @@
       </DataTable>
     </UCard>
 
+    <UModal
+      v-model:open="showDetail"
+      :title="selectedPayment ? `${formatCurrency(selectedPayment.amount)} transfer` : 'Transfer detail'"
+    >
+      <template #body>
+        <PaymentDetailPanel v-if="selectedPayment" :payment="selectedPayment" :my-user-id="myUserId" />
+      </template>
+    </UModal>
+
     <PaymentCreateModal
       v-model="showCreate"
       :loading="creating"
@@ -46,11 +56,10 @@
 
 <script setup lang="ts">
 import type { ColumnDef } from '#shared/types'
-import type { CreatePaymentRequest, Payment } from '~/composables/usePayments'
+import type { Payment } from '~/composables/usePayments'
 
 const { listMine, create } = usePayments()
 const { getMine } = useWallet()
-const toast = useToast()
 
 const rows = ref<Payment[]>([])
 const loading = ref(false)
@@ -60,6 +69,14 @@ const myUserId = ref<number>()
 const showCreate = ref(false)
 const creating = ref(false)
 const createError = ref('')
+
+const showDetail = ref(false)
+const selectedPayment = ref<Payment | null>(null)
+
+function openDetail(row: Payment) {
+  selectedPayment.value = row
+  showDetail.value = true
+}
 
 const sort = ref<{ column: string; direction: 'asc' | 'desc' } | undefined>({
   column: 'createdAt',
@@ -94,14 +111,14 @@ async function load() {
   }
 }
 
-async function onCreatePayment(payload: CreatePaymentRequest) {
+async function onCreatePayment(payload: { payeeUserId: number; amount: number; description?: string }) {
   creating.value = true
   createError.value = ''
   try {
     const payment = await create(payload)
     showCreate.value = false
-    toast.add({ title: 'Payment created', description: `#${payment.id}`, color: 'success' })
-    await load()
+    rows.value = [payment, ...rows.value]
+    openDetail(payment)
   } catch (err) {
     createError.value = apiErrorMessage(err)
   } finally {
@@ -109,6 +126,12 @@ async function onCreatePayment(payload: CreatePaymentRequest) {
   }
 }
 
-onMounted(load)
+const route = useRoute()
+
+onMounted(() => {
+  load()
+  // Supports the Dashboard's "New payment" quick action (/payments?new=1).
+  if (route.query.new) showCreate.value = true
+})
 watch(sort, load)
 </script>

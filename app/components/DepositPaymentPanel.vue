@@ -58,6 +58,12 @@
         </div>
         <UAlert v-if="error" color="error" variant="subtle" class="mt-3" :title="error" />
       </div>
+
+      <div class="mt-4 flex justify-end">
+        <UButton size="xs" color="error" variant="ghost" :loading="cancelling" @click="onCancel">
+          Cancel deposit
+        </UButton>
+      </div>
     </template>
 
     <div v-else-if="deposit.status === 'SUCCESS'" class="flex flex-col items-center text-center py-6">
@@ -67,6 +73,29 @@
       <p class="text-sm text-gray-500 dark:text-gray-400">Deposit successful</p>
       <p class="text-4xl font-semibold text-gray-900 dark:text-white mt-1">{{ formatCurrency(deposit.amount) }}</p>
       <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">added to your wallet</p>
+
+      <UAlert v-if="error" color="error" variant="subtle" class="mt-4 w-full text-left" :title="error" />
+
+      <UButton v-if="isAdmin" size="xs" color="neutral" variant="ghost" class="mt-4" :loading="refunding" @click="onRefund">
+        Refund deposit
+      </UButton>
+    </div>
+
+    <div v-else-if="deposit.status === 'CANCELLED'" class="flex flex-col items-center text-center py-6">
+      <div class="flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+        <UIcon name="i-lucide-ban" class="w-9 h-9 text-gray-400" />
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Deposit cancelled</p>
+      <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">no funds were added to your wallet</p>
+    </div>
+
+    <div v-else-if="deposit.status === 'REFUNDED'" class="flex flex-col items-center text-center py-6">
+      <div class="flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+        <UIcon name="i-lucide-undo-2" class="w-9 h-9 text-gray-400" />
+      </div>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Deposit refunded</p>
+      <p class="text-4xl font-semibold text-gray-900 dark:text-white mt-1">{{ formatCurrency(deposit.amount) }}</p>
+      <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">reversed from your wallet</p>
     </div>
 
     <div v-else class="flex flex-col items-center text-center py-6">
@@ -87,10 +116,13 @@ import type { Deposit } from '~/composables/useDeposits'
 const props = defineProps<{ deposit: Deposit }>()
 const emit = defineEmits<{ update: [deposit: Deposit] }>()
 
-const { checkStatus, simulateSuccess, simulateFailed } = useDeposits()
+const { checkStatus, simulateSuccess, simulateFailed, cancel, refund } = useDeposits()
+const { isAdmin } = useAuth()
 
 const checking = ref(false)
 const simulating = ref<'success' | 'failed' | ''>('')
+const cancelling = ref(false)
+const refunding = ref(false)
 const error = ref('')
 
 async function onCheckStatus() {
@@ -115,6 +147,30 @@ async function onSimulate(outcome: 'success' | 'failed') {
     error.value = apiErrorMessage(err)
   } finally {
     simulating.value = ''
+  }
+}
+
+async function onCancel() {
+  cancelling.value = true
+  error.value = ''
+  try {
+    emit('update', await cancel(props.deposit.id))
+  } catch (err) {
+    error.value = apiErrorMessage(err)
+  } finally {
+    cancelling.value = false
+  }
+}
+
+async function onRefund() {
+  refunding.value = true
+  error.value = ''
+  try {
+    emit('update', await refund(props.deposit.id))
+  } catch (err) {
+    error.value = apiErrorMessage(err)
+  } finally {
+    refunding.value = false
   }
 }
 </script>

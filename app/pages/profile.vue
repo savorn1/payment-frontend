@@ -33,10 +33,7 @@
         icon="i-lucide-triangle-alert"
       />
 
-      <div v-else-if="walletMissing" class="flex items-center justify-between">
-        <p class="text-sm text-gray-500 dark:text-gray-400">You don't have a wallet yet.</p>
-        <UButton size="sm" :loading="creatingWallet" @click="onCreateWallet">Create wallet</UButton>
-      </div>
+      <WalletMissingPrompt v-else-if="walletMissing" :loading="creatingWallet" :bordered="false" @create="onCreateWallet" />
 
       <div v-else class="flex items-center justify-between">
         <p class="text-3xl font-semibold text-gray-900 dark:text-white">
