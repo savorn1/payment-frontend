@@ -148,7 +148,7 @@
 </template>
 
 <script setup lang="ts" generic="T extends Record<string, any>">
-import type { ColumnDef } from '~/shared/types'
+import type { ColumnDef } from '#shared/types'
 import type { TableColumn } from '@nuxt/ui'
 
 const props = withDefaults(

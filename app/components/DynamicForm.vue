@@ -30,7 +30,7 @@
 // Renders a whole form from a FieldDef[]. The parent owns the value object via
 // v-model; `default` values from field defs are applied once for keys the
 // model doesn't have yet.
-import type { FieldDef } from '~/shared/types'
+import type { FieldDef } from '#shared/types'
 
 const props = withDefaults(
   defineProps<{

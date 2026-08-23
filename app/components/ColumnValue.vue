@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ColumnDef } from '~/shared/types'
+import type { ColumnDef } from '#shared/types'
 
 const props = defineProps<{ column: ColumnDef; row: Record<string, any> }>()
 

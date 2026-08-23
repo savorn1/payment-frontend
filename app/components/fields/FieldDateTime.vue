@@ -17,7 +17,7 @@
 // Native datetime-local input — dependency-free. Value is 'yyyy-MM-ddTHH:mm'
 // (no seconds/timezone), which `new Date(...)` and formatDateTime() both
 // accept as-is.
-import type { FieldDef } from '~/shared/types'
+import type { FieldDef } from '#shared/types'
 
 defineProps<{ field: FieldDef }>()
 const model = defineModel<any>()

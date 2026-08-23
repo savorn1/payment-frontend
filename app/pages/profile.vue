@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FieldDef } from '~/shared/types'
+import type { FieldDef } from '#shared/types'
 
 const { getProfile, updateProfile, changePassword } = useProfile()
 const toast = useToast()

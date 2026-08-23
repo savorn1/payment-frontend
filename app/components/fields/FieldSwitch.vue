@@ -8,7 +8,7 @@
 <script setup lang="ts">
 // Optional on_label/off_label — text next to the toggle for its current state
 // (e.g. 'Active'/'Inactive'); the bare toggle still works when neither is set.
-import type { FieldDef } from '~/shared/types'
+import type { FieldDef } from '#shared/types'
 
 const props = defineProps<{ field: FieldDef }>()
 const model = defineModel<any>()

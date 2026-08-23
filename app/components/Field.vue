@@ -16,7 +16,7 @@
 // components/fields/. This file only owns what every type shares — the
 // UFormField wrapper (label, required marker, hint) and label auto-humanization.
 import type { Component } from 'vue'
-import type { FieldDef, FieldType } from '~/shared/types'
+import type { FieldDef, FieldType } from '#shared/types'
 import FieldText from './fields/FieldText.vue'
 import FieldEmail from './fields/FieldEmail.vue'
 import FieldPassword from './fields/FieldPassword.vue'

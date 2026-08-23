@@ -16,7 +16,7 @@
 <script setup lang="ts">
 // Native date input — dependency-free. Value is 'yyyy-MM-dd', which
 // formatDate() accepts as-is.
-import type { FieldDef } from '~/shared/types'
+import type { FieldDef } from '#shared/types'
 
 defineProps<{ field: FieldDef }>()
 const model = defineModel<any>()

@@ -5,27 +5,29 @@
       <UButton to="/users/new" icon="i-lucide-plus">New user</UButton>
     </div>
 
-    <div class="flex flex-wrap gap-3 mb-4">
-      <UInput
-        v-model="filter.username"
-        placeholder="Search username"
-        icon="i-lucide-search"
-        class="w-56"
-        @keyup.enter="load"
-      />
-      <USelect
-        v-model="filter.role"
-        :items="roleFilterOptions"
-        placeholder="Role"
-        class="w-40"
-      />
-      <USelect
-        v-model="filter.enabled"
-        :items="statusFilterOptions"
-        placeholder="Status"
-        class="w-40"
-      />
-    </div>
+    <UCard class="mb-4">
+      <div class="flex flex-wrap gap-3">
+        <UInput
+          v-model="filter.username"
+          placeholder="Search username"
+          icon="i-lucide-search"
+          class="w-56"
+          @keyup.enter="load"
+        />
+        <USelect
+          v-model="filter.role"
+          :items="roleFilterOptions"
+          placeholder="Role"
+          class="w-40"
+        />
+        <USelect
+          v-model="filter.enabled"
+          :items="statusFilterOptions"
+          placeholder="Status"
+          class="w-40"
+        />
+      </div>
+    </UCard>
 
     <UAlert
       v-if="error"
@@ -36,48 +38,50 @@
       icon="i-lucide-triangle-alert"
     />
 
-    <DataTable v-model:sort="sort" :rows="rows" :columns="columns" :loading="loading" refreshable numbered @refresh="load">
-      <template #role-data="{ row }">
-        <USelect
-          :model-value="row.role"
-          :items="roleOptions"
-          :disabled="row.username === myUsername"
-          class="w-32"
-          @update:model-value="(value: string) => onRoleChange(row, value as Role)"
-        />
-      </template>
-      <template #enabled-data="{ row }">
-        <USwitch
-          :model-value="row.enabled"
-          :disabled="row.username === myUsername"
-          @update:model-value="(value: boolean) => onStatusChange(row, value)"
-        />
-      </template>
-      <template #actions-data="{ row }">
-        <div class="flex items-center gap-2">
-          <UButton
-            size="xs"
-            color="neutral"
-            variant="soft"
-            icon="i-lucide-key-round"
+    <UCard>
+      <DataTable v-model:sort="sort" :rows="rows" :columns="columns" :loading="loading" refreshable numbered @refresh="load">
+        <template #role-data="{ row }">
+          <USelect
+            :model-value="row.role"
+            :items="roleOptions"
             :disabled="row.username === myUsername"
-            @click="openResetPasswordWith(row)"
-          >
-            Reset password
-          </UButton>
-          <UButton
-            size="xs"
-            color="error"
-            variant="soft"
-            icon="i-lucide-trash-2"
+            class="w-32"
+            @update:model-value="(value: string) => onRoleChange(row, value as Role)"
+          />
+        </template>
+        <template #enabled-data="{ row }">
+          <USwitch
+            :model-value="row.enabled"
             :disabled="row.username === myUsername"
-            @click="openDeleteWith(row)"
-          >
-            Delete
-          </UButton>
-        </div>
-      </template>
-    </DataTable>
+            @update:model-value="(value: boolean) => onStatusChange(row, value)"
+          />
+        </template>
+        <template #actions-data="{ row }">
+          <div class="flex items-center gap-2">
+            <UButton
+              size="xs"
+              color="neutral"
+              variant="soft"
+              icon="i-lucide-key-round"
+              :disabled="row.username === myUsername"
+              @click="openResetPasswordWith(row)"
+            >
+              Reset password
+            </UButton>
+            <UButton
+              size="xs"
+              color="error"
+              variant="soft"
+              icon="i-lucide-trash-2"
+              :disabled="row.username === myUsername"
+              @click="openDeleteWith(row)"
+            >
+              Delete
+            </UButton>
+          </div>
+        </template>
+      </DataTable>
+    </UCard>
 
     <ResetPasswordModal
       v-model="showResetPassword"
@@ -100,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ColumnDef } from '~/shared/types'
+import type { ColumnDef } from '#shared/types'
 import type { AdminUser, Role } from '~/composables/useUsers'
 
 definePageMeta({ middleware: 'admin' })

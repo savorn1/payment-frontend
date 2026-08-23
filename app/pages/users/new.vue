@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FieldDef } from '~/shared/types'
+import type { FieldDef } from '#shared/types'
 import type { CreateUserPayload } from '~/composables/useUsers'
 
 definePageMeta({ middleware: 'admin' })

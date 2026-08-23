@@ -14,29 +14,31 @@
       icon="i-lucide-triangle-alert"
     />
 
-    <DataTable
-      v-model:sort="sort"
-      :rows="rows"
-      :columns="columns"
-      :loading="loading"
-      refreshable
-      numbered
-      @refresh="load"
-    >
-      <template #direction-data="{ row }">
-        <UBadge :color="row.payerUserId === myUserId ? 'neutral' : 'success'" variant="subtle">
-          {{ row.payerUserId === myUserId ? 'Sent' : 'Received' }}
-        </UBadge>
-      </template>
-      <template #counterparty-data="{ row }">
-        #{{ row.payerUserId === myUserId ? row.payeeUserId : row.payerUserId }}
-      </template>
-    </DataTable>
+    <UCard>
+      <DataTable
+        v-model:sort="sort"
+        :rows="rows"
+        :columns="columns"
+        :loading="loading"
+        refreshable
+        numbered
+        @refresh="load"
+      >
+        <template #direction-data="{ row }">
+          <UBadge :color="row.payerUserId === myUserId ? 'neutral' : 'success'" variant="subtle">
+            {{ row.payerUserId === myUserId ? 'Sent' : 'Received' }}
+          </UBadge>
+        </template>
+        <template #counterparty-data="{ row }">
+          #{{ row.payerUserId === myUserId ? row.payeeUserId : row.payerUserId }}
+        </template>
+      </DataTable>
+    </UCard>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ColumnDef } from '~/shared/types'
+import type { ColumnDef } from '#shared/types'
 import type { Payment } from '~/composables/usePayments'
 
 const { listMine } = usePayments()

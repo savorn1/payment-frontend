@@ -26,7 +26,7 @@
 // Same numeric model as FieldNumber (a real number, '' clears to undefined) but
 // displays thousands-formatted ('1,000.00') while blurred and a plain editable
 // number while focused, so typing isn't disrupted by commas inserted mid-edit.
-import type { FieldDef } from '~/shared/types'
+import type { FieldDef } from '#shared/types'
 
 defineProps<{ field: FieldDef }>()
 const model = defineModel<any>()
