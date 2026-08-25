@@ -55,16 +55,16 @@
 
       <template #settlements>
         <UCard class="mb-4">
-          <div class="flex flex-wrap gap-3">
+          <div class="flex flex-wrap items-end gap-3">
             <USelect v-model="settlementStatus" :items="settlementStatusOptions" placeholder="Status" class="w-40" />
+            <DateAmountRangeFilter
+              v-model:start-date="settlementFilter.startDate"
+              v-model:end-date="settlementFilter.endDate"
+              v-model:min-amount="settlementFilter.minAmount"
+              v-model:max-amount="settlementFilter.maxAmount"
+            />
           </div>
         </UCard>
-        <DateAmountRangeFilter
-          v-model:start-date="settlementFilter.startDate"
-          v-model:end-date="settlementFilter.endDate"
-          v-model:min-amount="settlementFilter.minAmount"
-          v-model:max-amount="settlementFilter.maxAmount"
-        />
         <UCard>
           <UAlert v-if="settlementsError" color="error" variant="subtle" class="mb-3" :title="settlementsError" />
           <DataTable
@@ -201,6 +201,7 @@ const settlementStatusOptions = [
   { label: 'Failed', value: 'FAILED' },
   { label: 'Cancelled', value: 'CANCELLED' },
   { label: 'Refunded', value: 'REFUNDED' },
+  { label: 'Expired', value: 'EXPIRED' },
   { label: 'All statuses', value: undefined }
 ]
 

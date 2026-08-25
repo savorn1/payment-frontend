@@ -27,12 +27,12 @@
       <template #header>
         <UDashboardNavbar>
           <template #right>
-            <UButton to="/profile" size="sm" color="neutral" variant="ghost" icon="i-lucide-user">
-              {{ username }}
-            </UButton>
-            <UButton size="sm" color="neutral" variant="ghost" icon="i-lucide-log-out" @click="logout">
-              Log out
-            </UButton>
+            <UDropdownMenu :items="profileItems" :content="{ align: 'end' }" :ui="{ content: 'w-56' }">
+              <UButton size="sm" color="neutral" variant="ghost" trailing-icon="i-lucide-chevron-down">
+                <UAvatar :alt="username ?? '?'" size="2xs" />
+                {{ username }}
+              </UButton>
+            </UDropdownMenu>
           </template>
         </UDashboardNavbar>
       </template>
@@ -45,9 +45,22 @@
 </template>
 
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
+import type { DropdownMenuItem, NavigationMenuItem } from '@nuxt/ui'
 
-const { username, isAdmin, logout } = useAuth()
+const { username, role, isAdmin, logout } = useAuth()
+
+const profileItems = computed<DropdownMenuItem[][]>(() => [
+  [
+    {
+      label: username.value ?? '',
+      description: role.value === 'ADMIN' ? 'Administrator' : 'User',
+      avatar: { alt: username.value ?? '?' },
+      type: 'label'
+    }
+  ],
+  [{ label: 'Profile', icon: 'i-lucide-user', to: '/profile' }],
+  [{ label: 'Log out', icon: 'i-lucide-log-out', color: 'error', onSelect: () => logout() }]
+])
 
 const items = computed<NavigationMenuItem[]>(() => [
   { label: 'Dashboard', to: '/', icon: 'i-lucide-layout-dashboard' },
@@ -59,10 +72,10 @@ const items = computed<NavigationMenuItem[]>(() => [
     ? [
         { label: 'Administration', type: 'label' as const },
         { label: 'Users', to: '/users', icon: 'i-lucide-users' },
-        { label: 'Merchant Management', to: '/merchants', icon: 'i-lucide-store' },
-        { label: 'Transfer Management', to: '/transfers', icon: 'i-lucide-arrow-left-right' },
+        { label: 'Merchant', to: '/merchants', icon: 'i-lucide-store' },
+        { label: 'Transfer', to: '/transfers', icon: 'i-lucide-arrow-left-right' },
         { label: 'Payment Gateway', to: '/gateways', icon: 'i-lucide-plug-zap' },
-        { label: 'Webhook Management', to: '/webhooks', icon: 'i-lucide-webhook' },
+        { label: 'Webhook', to: '/webhooks', icon: 'i-lucide-webhook' },
         { label: 'Fees & Limits', to: '/fees-limits', icon: 'i-lucide-percent' },
         { label: 'Reconciliation', to: '/reconciliation', icon: 'i-lucide-scale' },
         { label: 'Reports', to: '/reports', icon: 'i-lucide-bar-chart-3' }

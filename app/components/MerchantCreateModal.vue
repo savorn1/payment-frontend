@@ -45,21 +45,22 @@ const userOptions = computed(() => users.value.map((u) => ({ label: u.username, 
 const name = ref('')
 const canSubmit = computed(() => selectedUserId.value !== undefined && name.value.trim().length > 0)
 
+async function fetchUsers(query: string) {
+  searchingUsers.value = true
+  try {
+    const res = await listUsers({ username: query.trim() || undefined, size: 10 })
+    users.value = res.data
+  } catch {
+    users.value = []
+  } finally {
+    searchingUsers.value = false
+  }
+}
+
 let userDebounce: ReturnType<typeof setTimeout> | undefined
 watch(userQuery, (query) => {
   if (userDebounce) clearTimeout(userDebounce)
-  if (!query || query.trim().length === 0) return
-  userDebounce = setTimeout(async () => {
-    searchingUsers.value = true
-    try {
-      const res = await listUsers({ username: query.trim(), size: 10 })
-      users.value = res.data
-    } catch {
-      users.value = []
-    } finally {
-      searchingUsers.value = false
-    }
-  }, 300)
+  userDebounce = setTimeout(() => fetchUsers(query), 300)
 })
 
 watch(open, (value) => {
@@ -68,6 +69,10 @@ watch(open, (value) => {
   users.value = []
   selectedUserId.value = undefined
   name.value = ''
+  // Load an initial page of users right away — without this, the picker
+  // stays empty until the admin types something, and looks like there's no
+  // user selector at all.
+  fetchUsers('')
 })
 
 function onSubmit() {

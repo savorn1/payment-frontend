@@ -32,7 +32,7 @@
       </div>
 
       <UCard class="mb-4">
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-wrap items-end gap-3">
           <UInput
             v-model="filter.search"
             placeholder="Search description or reference"
@@ -42,14 +42,14 @@
           />
           <USelect v-model="filter.type" :items="typeFilterOptions" placeholder="Type" class="w-36" />
           <USelect v-model="filter.status" :items="statusFilterOptions" placeholder="Status" class="w-36" />
+          <DateAmountRangeFilter
+            v-model:start-date="filter.startDate"
+            v-model:end-date="filter.endDate"
+            v-model:min-amount="filter.minAmount"
+            v-model:max-amount="filter.maxAmount"
+          />
         </div>
       </UCard>
-      <DateAmountRangeFilter
-        v-model:start-date="filter.startDate"
-        v-model:end-date="filter.endDate"
-        v-model:min-amount="filter.minAmount"
-        v-model:max-amount="filter.maxAmount"
-      />
 
       <UAlert
         v-if="error"

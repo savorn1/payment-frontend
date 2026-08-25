@@ -4,12 +4,16 @@
 
     <UTabs v-model="activeTab" :items="tabItems" class="w-full">
       <template #transaction>
-        <DateAmountRangeFilter
-          v-model:start-date="txFilter.startDate"
-          v-model:end-date="txFilter.endDate"
-          v-model:min-amount="txFilter.minAmount"
-          v-model:max-amount="txFilter.maxAmount"
-        />
+        <UCard class="mb-4">
+          <div class="flex flex-wrap items-end gap-3">
+            <DateAmountRangeFilter
+              v-model:start-date="txFilter.startDate"
+              v-model:end-date="txFilter.endDate"
+              v-model:min-amount="txFilter.minAmount"
+              v-model:max-amount="txFilter.maxAmount"
+            />
+          </div>
+        </UCard>
         <UCard>
           <UAlert v-if="txError" color="error" variant="subtle" class="mb-3" :title="txError" />
           <DataTable
@@ -28,12 +32,16 @@
       </template>
 
       <template #deposit>
-        <DateAmountRangeFilter
-          v-model:start-date="depositFilter.startDate"
-          v-model:end-date="depositFilter.endDate"
-          v-model:min-amount="depositFilter.minAmount"
-          v-model:max-amount="depositFilter.maxAmount"
-        />
+        <UCard class="mb-4">
+          <div class="flex flex-wrap items-end gap-3">
+            <DateAmountRangeFilter
+              v-model:start-date="depositFilter.startDate"
+              v-model:end-date="depositFilter.endDate"
+              v-model:min-amount="depositFilter.minAmount"
+              v-model:max-amount="depositFilter.maxAmount"
+            />
+          </div>
+        </UCard>
         <UCard>
           <UAlert v-if="depositError" color="error" variant="subtle" class="mb-3" :title="depositError" />
           <DataTable
@@ -52,12 +60,16 @@
       </template>
 
       <template #withdrawal>
-        <DateAmountRangeFilter
-          v-model:start-date="withdrawalFilter.startDate"
-          v-model:end-date="withdrawalFilter.endDate"
-          v-model:min-amount="withdrawalFilter.minAmount"
-          v-model:max-amount="withdrawalFilter.maxAmount"
-        />
+        <UCard class="mb-4">
+          <div class="flex flex-wrap items-end gap-3">
+            <DateAmountRangeFilter
+              v-model:start-date="withdrawalFilter.startDate"
+              v-model:end-date="withdrawalFilter.endDate"
+              v-model:min-amount="withdrawalFilter.minAmount"
+              v-model:max-amount="withdrawalFilter.maxAmount"
+            />
+          </div>
+        </UCard>
         <UCard>
           <UAlert v-if="withdrawalError" color="error" variant="subtle" class="mb-3" :title="withdrawalError" />
           <DataTable
@@ -76,12 +88,16 @@
       </template>
 
       <template #transfer>
-        <DateAmountRangeFilter
-          v-model:start-date="transferFilter.startDate"
-          v-model:end-date="transferFilter.endDate"
-          v-model:min-amount="transferFilter.minAmount"
-          v-model:max-amount="transferFilter.maxAmount"
-        />
+        <UCard class="mb-4">
+          <div class="flex flex-wrap items-end gap-3">
+            <DateAmountRangeFilter
+              v-model:start-date="transferFilter.startDate"
+              v-model:end-date="transferFilter.endDate"
+              v-model:min-amount="transferFilter.minAmount"
+              v-model:max-amount="transferFilter.maxAmount"
+            />
+          </div>
+        </UCard>
         <UCard>
           <UAlert v-if="transferError" color="error" variant="subtle" class="mb-3" :title="transferError" />
           <DataTable
@@ -100,12 +116,16 @@
       </template>
 
       <template #settlement>
-        <DateAmountRangeFilter
-          v-model:start-date="settlementFilter.startDate"
-          v-model:end-date="settlementFilter.endDate"
-          v-model:min-amount="settlementFilter.minAmount"
-          v-model:max-amount="settlementFilter.maxAmount"
-        />
+        <UCard class="mb-4">
+          <div class="flex flex-wrap items-end gap-3">
+            <DateAmountRangeFilter
+              v-model:start-date="settlementFilter.startDate"
+              v-model:end-date="settlementFilter.endDate"
+              v-model:min-amount="settlementFilter.minAmount"
+              v-model:max-amount="settlementFilter.maxAmount"
+            />
+          </div>
+        </UCard>
         <UCard>
           <UAlert v-if="settlementError" color="error" variant="subtle" class="mb-3" :title="settlementError" />
           <DataTable
@@ -124,6 +144,39 @@
       </template>
 
       <template #fee>
+        <UCard class="mb-4">
+          <div class="flex flex-wrap items-end gap-3">
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">From date</label>
+              <UInput v-model="feeFilter.startDate" type="date" class="w-40" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">To date</label>
+              <UInput v-model="feeFilter.endDate" type="date" class="w-40" />
+            </div>
+            <UButton
+              v-if="feeFilter.startDate || feeFilter.endDate"
+              size="sm"
+              color="neutral"
+              variant="ghost"
+              icon="i-lucide-x"
+              @click="feeFilter.startDate = undefined; feeFilter.endDate = undefined"
+            >
+              Clear
+            </UButton>
+            <UButton
+              size="sm"
+              color="neutral"
+              variant="ghost"
+              icon="i-lucide-refresh-cw"
+              :loading="feeLoading"
+              class="ml-auto"
+              @click="loadFeeReport"
+            >
+              Refresh
+            </UButton>
+          </div>
+        </UCard>
         <UCard>
           <div v-if="feeLoading" class="flex justify-center py-6">
             <UIcon name="i-lucide-loader-circle" class="w-5 h-5 text-gray-400 animate-spin" />
@@ -168,10 +221,21 @@
             exportable
             export-filename="merchant-report"
             @refresh="loadMerchants"
+            @select="openMerchantTransactions"
           />
         </UCard>
       </template>
     </UTabs>
+
+    <UModal
+      v-model:open="showMerchantTransactions"
+      :title="selectedMerchantReport ? `${selectedMerchantReport.merchantName} transactions` : 'Merchant transactions'"
+      :ui="{ content: 'sm:max-w-4xl' }"
+    >
+      <template #body>
+        <MerchantTransactionsPanel v-if="selectedMerchantReport" :merchant="selectedMerchantReport" />
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -181,7 +245,7 @@ import type { AdminWalletTransaction } from '~/composables/useWallet'
 import type { AdminDeposit } from '~/composables/useDeposits'
 import type { AdminWithdrawal } from '~/composables/useWithdrawals'
 import type { AdminPayment } from '~/composables/usePayments'
-import type { FeeReport, MerchantReportEntry } from '~/composables/useReports'
+import type { FeeReport, FeeReportFilter, MerchantReportEntry } from '~/composables/useReports'
 
 definePageMeta({ middleware: 'admin' })
 
@@ -400,17 +464,19 @@ watch(settlementFilter, () => { settlementPage.value === 1 ? loadSettlements() :
 const feeReport = ref<FeeReport | null>(null)
 const feeLoading = ref(false)
 const feeError = ref('')
+const feeFilter = reactive<FeeReportFilter>({})
 async function loadFeeReport() {
   feeLoading.value = true
   feeError.value = ''
   try {
-    feeReport.value = await getFeeReport()
+    feeReport.value = await getFeeReport(feeFilter)
   } catch (err) {
     feeError.value = apiErrorMessage(err)
   } finally {
     feeLoading.value = false
   }
 }
+watch(feeFilter, loadFeeReport)
 
 // ── Merchant report ───────────────────────────────────────────────────────
 const merchantRows = ref<MerchantReportEntry[]>([])
@@ -435,6 +501,13 @@ async function loadMerchants() {
   } finally {
     merchantLoading.value = false
   }
+}
+
+const showMerchantTransactions = ref(false)
+const selectedMerchantReport = ref<MerchantReportEntry | null>(null)
+function openMerchantTransactions(row: MerchantReportEntry) {
+  selectedMerchantReport.value = row
+  showMerchantTransactions.value = true
 }
 
 onMounted(() => {

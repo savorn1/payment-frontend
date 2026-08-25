@@ -24,7 +24,7 @@
       />
     </UCard>
 
-    <UModal v-model:open="showDetail" :title="selected ? `${selected.providerName} gateway` : 'Gateway detail'" :ui="{ content: 'sm:max-w-2xl' }">
+    <UModal v-model:open="showDetail" :title="selected ? `${selected.providerName} gateway` : 'Gateway detail'" :ui="{ content: 'sm:max-w-4xl' }">
       <template #body>
         <GatewayDetailPanel v-if="selected" :gateway="selected" @updated="onUpdated" />
       </template>

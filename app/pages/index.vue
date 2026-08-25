@@ -188,41 +188,81 @@
     </template>
 
     <template v-if="isAdmin && platform">
-      <div class="flex items-center gap-2 mt-8 mb-4 pt-6 border-t border-gray-200 dark:border-gray-800">
-        <UIcon name="i-lucide-globe" class="w-4 h-4 text-gray-400 dark:text-gray-500" />
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Platform overview</h2>
-        <span class="text-sm text-gray-400 dark:text-gray-500">
-          — across all {{ countLabel(platform.totalUsers, 'user') }}
-        </span>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatTile
-          label="Total users"
-          :value="String(platform.totalUsers)"
-          icon="i-lucide-users"
-          color="neutral"
-          to="/users"
-        />
-        <StatTile
-          label="Platform balance"
-          :value="formatCurrencyCompact(platform.totalWalletBalance)"
-          icon="i-lucide-landmark"
-          color="primary"
-        />
-        <StatTile
-          label="Total deposits"
-          :value="formatCurrencyCompact(platform.totalDeposits)"
-          :sublabel="countLabel(platform.depositCount, 'deposit')"
-          icon="i-lucide-arrow-down-to-line"
-          color="success"
-        />
-        <StatTile
-          label="Total transfers"
-          :value="formatCurrencyCompact(platform.totalTransfers)"
-          :sublabel="countLabel(platform.transferCount, 'transfer')"
-          icon="i-lucide-arrow-left-right"
-          color="info"
-        />
+      <div
+        class="mt-8 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-900/40 p-5 sm:p-6"
+      >
+        <div class="flex items-center gap-3 mb-5">
+          <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-500 text-white shrink-0">
+            <UIcon name="i-lucide-globe" class="w-4 h-4" />
+          </span>
+          <div>
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white leading-tight">Platform overview</h2>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Across all {{ countLabel(platform.totalUsers, 'user') }}
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+          <StatTile
+            label="Total users"
+            :value="String(platform.totalUsers)"
+            icon="i-lucide-users"
+            color="neutral"
+            to="/users"
+          />
+          <StatTile
+            label="Platform balance"
+            :value="formatCurrencyCompact(platform.totalWalletBalance)"
+            icon="i-lucide-landmark"
+            color="primary"
+          />
+          <StatTile
+            label="Platform deposits"
+            :value="formatCurrencyCompact(platform.totalDeposits)"
+            :sublabel="countLabel(platform.depositCount, 'deposit')"
+            icon="i-lucide-arrow-down-to-line"
+            color="success"
+            to="/reports"
+          />
+          <StatTile
+            label="Platform withdrawals"
+            :value="formatCurrencyCompact(platform.totalWithdrawals)"
+            :sublabel="countLabel(platform.withdrawalCount, 'withdrawal')"
+            icon="i-lucide-arrow-up-from-line"
+            color="warning"
+            to="/reports"
+          />
+          <StatTile
+            label="Platform transfers"
+            :value="formatCurrencyCompact(platform.totalTransfers)"
+            :sublabel="countLabel(platform.transferCount, 'transfer')"
+            icon="i-lucide-arrow-left-right"
+            color="info"
+            to="/transfers"
+          />
+        </div>
+
+        <div class="flex items-center gap-2 mt-6 mb-3 pt-5 border-t border-gray-200 dark:border-gray-800">
+          <UIcon name="i-lucide-shield" class="w-4 h-4 text-gray-400 dark:text-gray-500" />
+          <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            Administration
+          </h3>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <NuxtLink v-for="link in adminLinks" :key="link.to" :to="link.to" class="block">
+            <UCard
+              class="transition-all hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700"
+            >
+              <div class="flex items-center gap-3">
+                <div class="shrink-0 rounded-lg p-2" :class="link.iconBg">
+                  <UIcon :name="link.icon" class="w-4 h-4" :class="link.iconColor" />
+                </div>
+                <span class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ link.label }}</span>
+              </div>
+            </UCard>
+          </NuxtLink>
+        </div>
       </div>
     </template>
   </div>
@@ -321,6 +361,71 @@ const paymentStatusRows = computed(() => [
 function countLabel(count: number, noun: string) {
   return `${count} ${noun}${count === 1 ? '' : 's'}`
 }
+
+// Mirrors the sidebar's Administration section (app/layouts/default.vue) —
+// quick shortcuts to every admin console, since the dashboard is otherwise
+// the only page a fresh admin session lands on with no obvious way in.
+// Colors are deliberate per feature (not a cycling palette) so the icon
+// chips carry the same "meaning" they do elsewhere — e.g. success = money
+// moving through merchants, warning = things needing a callback/webhook.
+const adminLinks = [
+  {
+    label: 'Users',
+    to: '/users',
+    icon: 'i-lucide-users',
+    iconBg: 'bg-gray-100 dark:bg-gray-800',
+    iconColor: 'text-gray-500 dark:text-gray-400'
+  },
+  {
+    label: 'Merchant Management',
+    to: '/merchants',
+    icon: 'i-lucide-store',
+    iconBg: 'bg-success/10',
+    iconColor: 'text-success'
+  },
+  {
+    label: 'Transfer Management',
+    to: '/transfers',
+    icon: 'i-lucide-arrow-left-right',
+    iconBg: 'bg-info/10',
+    iconColor: 'text-info'
+  },
+  {
+    label: 'Payment Gateway',
+    to: '/gateways',
+    icon: 'i-lucide-plug-zap',
+    iconBg: 'bg-primary-50 dark:bg-primary-400/10',
+    iconColor: 'text-primary-500 dark:text-primary-400'
+  },
+  {
+    label: 'Webhook Management',
+    to: '/webhooks',
+    icon: 'i-lucide-webhook',
+    iconBg: 'bg-warning/10',
+    iconColor: 'text-warning'
+  },
+  {
+    label: 'Fees & Limits',
+    to: '/fees-limits',
+    icon: 'i-lucide-percent',
+    iconBg: 'bg-success/10',
+    iconColor: 'text-success'
+  },
+  {
+    label: 'Reconciliation',
+    to: '/reconciliation',
+    icon: 'i-lucide-scale',
+    iconBg: 'bg-info/10',
+    iconColor: 'text-info'
+  },
+  {
+    label: 'Reports',
+    to: '/reports',
+    icon: 'i-lucide-bar-chart-3',
+    iconBg: 'bg-primary-50 dark:bg-primary-400/10',
+    iconColor: 'text-primary-500 dark:text-primary-400'
+  }
+]
 
 const transactionColumns: ColumnDef<WalletTransactionEntry>[] = [
   { key: 'type', type: 'badge', color: (row) => (row.type === 'CREDIT' ? 'success' : 'neutral') },

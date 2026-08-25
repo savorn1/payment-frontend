@@ -50,7 +50,7 @@
     <UModal
       v-model:open="showDetail"
       :title="selected ? selected.name : 'Merchant detail'"
-      :ui="{ content: 'sm:max-w-2xl' }"
+      :ui="{ content: 'sm:max-w-5xl' }"
     >
       <template #body>
         <MerchantDetailPanel v-if="selected" :merchant="selected" @updated="onUpdated" />

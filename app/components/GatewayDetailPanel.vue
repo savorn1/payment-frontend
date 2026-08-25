@@ -38,6 +38,11 @@
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Current secret</p>
             <p class="font-mono text-sm text-gray-900 dark:text-white">{{ gateway.maskedSecret }}</p>
           </div>
+          <div class="flex justify-end">
+            <UButton size="xs" color="neutral" variant="soft" icon="i-lucide-wand-sparkles" @click="onGenerateSecret">
+              Generate secret
+            </UButton>
+          </div>
           <DynamicForm
             v-model="credentialsForm"
             :fields="credentialsFields"
@@ -181,6 +186,16 @@ const credentialsFields: FieldDef[] = [
 ]
 const savingCredentials = ref(false)
 const credentialsError = ref('')
+
+// 32 random bytes hex-encoded (64 chars) — same shape as the backend's own
+// randomHex(32) used for merchant webhook secrets. Just fills the field;
+// nothing is sent until the admin reviews it (via the password field's
+// reveal toggle) and submits "Rotate secret" through the normal flow.
+function onGenerateSecret() {
+  const bytes = new Uint8Array(32)
+  crypto.getRandomValues(bytes)
+  credentialsForm.value.secret = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+}
 
 async function onRotateSecret(values: Record<string, any>) {
   savingCredentials.value = true

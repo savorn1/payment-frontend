@@ -130,6 +130,17 @@ watch(recipientQuery, (query) => {
   }, 300)
 })
 
+async function loadInitialRecipients() {
+  searchingRecipients.value = true
+  try {
+    recipients.value = await searchRecipients('')
+  } catch {
+    recipients.value = []
+  } finally {
+    searchingRecipients.value = false
+  }
+}
+
 let amountDebounce: ReturnType<typeof setTimeout> | undefined
 watch(amountInput, () => {
   if (amountDebounce) clearTimeout(amountDebounce)
@@ -160,6 +171,9 @@ watch(open, (value) => {
   amountInput.value = ''
   description.value = ''
   quote.value = null
+  // Without this, the picker stays empty until the admin types something —
+  // looks like there's no recipient selector at all.
+  loadInitialRecipients()
 })
 
 function onConfirm() {

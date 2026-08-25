@@ -4,7 +4,7 @@
 // simulateFailed pushes it through the same signed-callback path a genuine
 // webhook would use (see SamplePaymentGateway's class comment on the backend).
 
-export type DepositStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'CANCELLED' | 'REFUNDED'
+export type DepositStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'CANCELLED' | 'REFUNDED' | 'EXPIRED'
 
 export interface Deposit {
   id: number
@@ -18,6 +18,9 @@ export interface Deposit {
   qrCodeData: string | null
   failureReason: string | null
   walletTransactionId: number | null
+  // Deadline the checkout link/QR is good for while still PENDING — past
+  // this, expect the status to flip to EXPIRED on the next refresh.
+  expiresAt: string | null
   createdAt: string
   updatedAt: string
 }
@@ -46,6 +49,7 @@ export interface AdminDeposit {
   provider: string
   providerReference: string | null
   failureReason: string | null
+  expiresAt: string | null
   createdAt: string
   updatedAt: string
 }

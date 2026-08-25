@@ -96,6 +96,7 @@ export function useAuth() {
         body: { refreshToken: pendingRefreshToken }
       }).catch(() => {})
     }
+    await navigateTo('/login')
   }
 
   return {

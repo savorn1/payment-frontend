@@ -1,7 +1,7 @@
 <template>
-  <component :is="to ? NuxtLink : 'div'" :to="to" :class="to ? 'block' : undefined">
-    <UCard :class="to ? 'transition-shadow hover:shadow-md' : ''">
-      <div class="flex items-start justify-between gap-3">
+  <component :is="to ? NuxtLink : 'div'" :to="to" :class="to ? 'block h-full' : 'h-full'">
+    <UCard class="h-full" :ui="{ body: 'h-full' }" :class="to ? 'transition-shadow hover:shadow-md' : ''">
+      <div class="flex items-start justify-between gap-3 h-full">
         <div class="min-w-0">
           <p class="text-sm text-gray-500 dark:text-gray-400">{{ label }}</p>
           <div v-if="loading" class="h-8 w-24 mt-1.5 rounded bg-gray-100 dark:bg-gray-800 animate-pulse" />

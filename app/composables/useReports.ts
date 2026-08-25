@@ -12,9 +12,15 @@ export interface FeeReport {
   transferFeeNote: string
 }
 
+export interface FeeReportFilter {
+  startDate?: string
+  endDate?: string
+}
+
 export interface MerchantReportEntry {
   merchantId: number
   merchantName: string
+  userId: number
   depositTotal: number
   depositCount: number
   withdrawalTotal: number
@@ -26,8 +32,8 @@ export interface MerchantReportEntry {
 export function useReports() {
   const api = useApi()
 
-  function getFeeReport() {
-    return api<FeeReport>('/api/admin/reports/fees')
+  function getFeeReport(filter: FeeReportFilter = {}) {
+    return api<FeeReport>('/api/admin/reports/fees', { query: filter })
   }
 
   function getMerchantReport() {

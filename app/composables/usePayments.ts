@@ -75,6 +75,7 @@ export interface AdminPayment {
 export interface AdminPaymentFilter {
   status?: PaymentStatus
   userId?: number
+  payerUserId?: number
   startDate?: string
   endDate?: string
   minAmount?: number

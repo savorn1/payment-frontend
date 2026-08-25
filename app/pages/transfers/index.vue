@@ -3,7 +3,7 @@
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Transfer Management</h1>
 
     <UCard class="mb-4">
-      <div class="flex flex-wrap gap-3">
+      <div class="flex flex-wrap items-end gap-3">
         <USelectMenu
           v-model="selectedUserId"
           v-model:search-term="userQuery"
@@ -16,14 +16,14 @@
           class="w-56"
         />
         <USelect v-model="filter.status" :items="statusFilterOptions" placeholder="Status" class="w-40" />
+        <DateAmountRangeFilter
+          v-model:start-date="filter.startDate"
+          v-model:end-date="filter.endDate"
+          v-model:min-amount="filter.minAmount"
+          v-model:max-amount="filter.maxAmount"
+        />
       </div>
     </UCard>
-    <DateAmountRangeFilter
-      v-model:start-date="filter.startDate"
-      v-model:end-date="filter.endDate"
-      v-model:min-amount="filter.minAmount"
-      v-model:max-amount="filter.maxAmount"
-    />
 
     <UAlert
       v-if="error"
@@ -67,11 +67,13 @@
 
 <script setup lang="ts">
 import type { ColumnDef } from '#shared/types'
-import type { AdminPayment, PaymentStatus, RecipientOption } from '~/composables/usePayments'
+import type { AdminPayment, PaymentStatus } from '~/composables/usePayments'
+import type { AdminUser } from '~/composables/useUsers'
 
 definePageMeta({ middleware: 'admin' })
 
-const { listAll, searchRecipients } = usePayments()
+const { listAll } = usePayments()
+const { list: listUsers } = useUsers()
 
 const rows = ref<AdminPayment[]>([])
 const loading = ref(false)
@@ -91,28 +93,31 @@ const statusOptions = [
 ]
 const statusFilterOptions = [{ label: 'All statuses', value: undefined }, ...statusOptions]
 
-// User filter — same search-as-you-type combobox as PaymentCreateModal's
-// recipient picker, reusing the same endpoint (id/username lookup).
+// User filter — same search-as-you-type combobox as MerchantCreateModal's
+// user picker, backed by the admin user list (unlike the payments recipient
+// search, this doesn't exclude the caller and supports an empty query).
 const userQuery = ref('')
-const users = ref<RecipientOption[]>([])
+const users = ref<AdminUser[]>([])
 const searchingUsers = ref(false)
 const selectedUserId = ref<number | undefined>()
 const userOptions = computed(() => users.value.map((u) => ({ label: u.username, value: u.id })))
 
+async function fetchUsers(query: string) {
+  searchingUsers.value = true
+  try {
+    const res = await listUsers({ username: query.trim() || undefined, size: 10 })
+    users.value = res.data
+  } catch {
+    users.value = []
+  } finally {
+    searchingUsers.value = false
+  }
+}
+
 let userDebounce: ReturnType<typeof setTimeout> | undefined
 watch(userQuery, (query) => {
   if (userDebounce) clearTimeout(userDebounce)
-  if (!query || query.trim().length === 0) return
-  userDebounce = setTimeout(async () => {
-    searchingUsers.value = true
-    try {
-      users.value = await searchRecipients(query.trim())
-    } catch {
-      users.value = []
-    } finally {
-      searchingUsers.value = false
-    }
-  }, 300)
+  userDebounce = setTimeout(() => fetchUsers(query), 300)
 })
 
 const sort = ref<{ column: string; direction: 'asc' | 'desc' } | undefined>({
@@ -178,5 +183,8 @@ function openDetail(row: AdminPayment) {
   showDetail.value = true
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  fetchUsers('')
+})
 </script>
