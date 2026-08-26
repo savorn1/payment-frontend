@@ -21,7 +21,11 @@
         export-filename="payment-gateways"
         @refresh="load"
         @select="openDetail"
-      />
+      >
+        <template #empty-state>
+          <EmptyState icon="i-lucide-plug-zap" title="No payment gateways configured" description="Payment gateways are provisioned by the platform team." />
+        </template>
+      </DataTable>
     </UCard>
 
     <UModal v-model:open="showDetail" :title="selected ? `${selected.providerName} gateway` : 'Gateway detail'" :ui="{ content: 'sm:max-w-4xl' }">

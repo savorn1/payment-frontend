@@ -21,7 +21,18 @@
           v-model:end-date="filter.endDate"
           v-model:min-amount="filter.minAmount"
           v-model:max-amount="filter.maxAmount"
+          hide-clear
         />
+        <UButton
+          v-if="hasActiveFilter"
+          size="sm"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-x"
+          @click="clearFilters"
+        >
+          Clear filters
+        </UButton>
       </div>
     </UCard>
 
@@ -47,7 +58,21 @@
         :row-number-start="(page - 1) * pageSize"
         @refresh="load"
         @select="openDetail"
-      />
+      >
+        <template #empty-state>
+          <EmptyState
+            v-if="hasActiveFilter"
+            icon="i-lucide-search-x"
+            title="No transfers match your filters"
+            description="Try a different search or clear your filters."
+          >
+            <template #action>
+              <UButton color="neutral" variant="soft" icon="i-lucide-x" @click="clearFilters">Clear filters</UButton>
+            </template>
+          </EmptyState>
+          <EmptyState v-else icon="i-lucide-arrow-left-right" title="No transfers yet" description="Payments between users will show up here." />
+        </template>
+      </DataTable>
 
       <div v-if="total > 0" class="pt-4">
         <DataPagination v-model:page="page" v-model:page-size="pageSize" :total="total" />
@@ -120,6 +145,25 @@ watch(userQuery, (query) => {
   userDebounce = setTimeout(() => fetchUsers(query), 300)
 })
 
+const hasActiveFilter = computed(
+  () =>
+    selectedUserId.value !== undefined ||
+    filter.status !== undefined ||
+    filter.startDate !== undefined ||
+    filter.endDate !== undefined ||
+    filter.minAmount !== undefined ||
+    filter.maxAmount !== undefined
+)
+
+function clearFilters() {
+  selectedUserId.value = undefined
+  filter.status = undefined
+  filter.startDate = undefined
+  filter.endDate = undefined
+  filter.minAmount = undefined
+  filter.maxAmount = undefined
+}
+
 const sort = ref<{ column: string; direction: 'asc' | 'desc' } | undefined>({
   column: 'createdAt',
   direction: 'desc'
@@ -134,7 +178,7 @@ const columns: ColumnDef<AdminPayment>[] = [
   { key: 'amount', type: 'currency', sortable: true },
   { key: 'feeAmount', label: 'Fee', type: 'currency' },
   { key: 'status', type: 'status' },
-  { key: 'description', type: 'text' },
+  { key: 'description', type: 'text', class: 'max-w-xs' },
   { key: 'createdAt', label: 'Created', type: 'datetime', sortable: true }
 ]
 

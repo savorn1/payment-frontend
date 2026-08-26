@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Payments</h1>
       <UButton icon="i-lucide-plus" @click="showCreate = true">New payment</UButton>
     </div>
@@ -13,7 +13,18 @@
           v-model:end-date="filter.endDate"
           v-model:min-amount="filter.minAmount"
           v-model:max-amount="filter.maxAmount"
+          hide-clear
         />
+        <UButton
+          v-if="hasActiveFilter"
+          size="sm"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-x"
+          @click="clearFilters"
+        >
+          Clear filters
+        </UButton>
       </div>
     </UCard>
 
@@ -46,6 +57,23 @@
         </template>
         <template #counterparty-data="{ row }">
           #{{ row.payerUserId === myUserId ? row.payeeUserId : row.payerUserId }}
+        </template>
+        <template #empty-state>
+          <EmptyState
+            v-if="hasActiveFilter"
+            icon="i-lucide-search-x"
+            title="No payments match your filters"
+            description="Try a different search or clear your filters."
+          >
+            <template #action>
+              <UButton color="neutral" variant="soft" icon="i-lucide-x" @click="clearFilters">Clear filters</UButton>
+            </template>
+          </EmptyState>
+          <EmptyState v-else icon="i-lucide-credit-card" title="No payments yet" description="Send money to another user to get started.">
+            <template #action>
+              <UButton icon="i-lucide-plus" @click="showCreate = true">New payment</UButton>
+            </template>
+          </EmptyState>
         </template>
       </DataTable>
     </UCard>
@@ -94,6 +122,23 @@ const statusFilterOptions = [
   { label: 'Failed', value: 'FAILED' }
 ]
 
+const hasActiveFilter = computed(
+  () =>
+    filter.status !== undefined ||
+    filter.startDate !== undefined ||
+    filter.endDate !== undefined ||
+    filter.minAmount !== undefined ||
+    filter.maxAmount !== undefined
+)
+
+function clearFilters() {
+  filter.status = undefined
+  filter.startDate = undefined
+  filter.endDate = undefined
+  filter.minAmount = undefined
+  filter.maxAmount = undefined
+}
+
 const showCreate = ref(false)
 const creating = ref(false)
 const createError = ref('')
@@ -118,7 +163,7 @@ const columns: ColumnDef<Payment>[] = [
   { key: 'amount', type: 'currency', sortable: true },
   { key: 'feeAmount', label: 'Fee', type: 'currency' },
   { key: 'status', type: 'status' },
-  { key: 'description', type: 'text' },
+  { key: 'description', type: 'text', class: 'max-w-xs' },
   { key: 'createdAt', label: 'Created', type: 'datetime', sortable: true }
 ]
 

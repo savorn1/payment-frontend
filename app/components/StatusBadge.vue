@@ -8,7 +8,7 @@
 <script setup lang="ts">
 const props = defineProps<{ status: string }>()
 
-type StatusColor = 'success' | 'error' | 'neutral' | 'warning' | 'info'
+type StatusColor = 'success' | 'error' | 'neutral' | 'warning' | 'info' | 'secondary' | 'cancelled'
 
 // Payment-platform-flavored status set — extend as new statuses show up.
 const STATUS_META: Record<string, { color: StatusColor; icon: string }> = {
@@ -21,10 +21,13 @@ const STATUS_META: Record<string, { color: StatusColor; icon: string }> = {
   FAILED: { color: 'error', icon: 'i-lucide-x-circle' },
   REJECTED: { color: 'error', icon: 'i-lucide-x-circle' },
   EXPIRED: { color: 'error', icon: 'i-lucide-triangle-alert' },
-  REFUNDED: { color: 'neutral', icon: 'i-lucide-undo-2' },
-  REVERSED: { color: 'neutral', icon: 'i-lucide-undo-2' },
-  CANCELLED: { color: 'neutral', icon: 'i-lucide-ban' },
-  VOIDED: { color: 'neutral', icon: 'i-lucide-ban' },
+  // Distinct from CANCELLED/VOIDED below — "money actually moved back" is a
+  // different outcome than "never settled," and looked identical (both
+  // neutral gray) before.
+  REFUNDED: { color: 'secondary', icon: 'i-lucide-undo-2' },
+  REVERSED: { color: 'secondary', icon: 'i-lucide-undo-2' },
+  CANCELLED: { color: 'cancelled', icon: 'i-lucide-ban' },
+  VOIDED: { color: 'cancelled', icon: 'i-lucide-ban' },
   DRAFT: { color: 'neutral', icon: 'i-lucide-pencil' },
   UP: { color: 'success', icon: 'i-lucide-check-circle' },
   DOWN: { color: 'error', icon: 'i-lucide-x-circle' },

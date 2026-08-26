@@ -16,7 +16,7 @@
     <UInput v-model="maxAmount" type="number" step="0.01" placeholder="0.00" class="w-32" />
   </div>
   <UButton
-    v-if="hasAnyFilter"
+    v-if="hasAnyFilter && !hideClear"
     size="sm"
     color="neutral"
     variant="ghost"
@@ -37,6 +37,12 @@
 // Values are plain strings ('yyyy-MM-dd' for dates, matching the native date
 // input and what the backend's LocalDate query params expect as-is) so the
 // parent can pass them straight through to its filter object.
+// `hideClear` — for callers with their own filter fields (e.g. a status
+// select) alongside this one, a single page-level "Clear filters" button
+// resetting everything reads better than two separate Clear buttons in the
+// same row; this hides this component's own so only the page-level one shows.
+const { hideClear = false } = defineProps<{ hideClear?: boolean }>()
+
 const startDate = defineModel<string | undefined>('startDate', { default: undefined })
 const endDate = defineModel<string | undefined>('endDate', { default: undefined })
 const minAmount = defineModel<number | undefined>('minAmount', { default: undefined })

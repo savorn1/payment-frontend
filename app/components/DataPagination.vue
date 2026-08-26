@@ -1,14 +1,14 @@
 <template>
   <div class="flex flex-wrap items-center justify-between gap-4">
     <div class="flex flex-wrap items-center gap-4">
-      <span class="text-sm font-medium text-primary-500 dark:text-primary-400 whitespace-nowrap">
+      <span class="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
         Showing {{ shownCount }} of {{ total }}
       </span>
 
       <div class="flex items-center gap-1">
         <button
           type="button"
-          class="flex items-center gap-0.5 text-sm font-medium text-primary-500 dark:text-primary-400 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed"
+          class="flex items-center gap-0.5 rounded-md px-1.5 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 disabled:pointer-events-none disabled:text-gray-300 dark:disabled:text-gray-600 focus-visible:outline-2 focus-visible:outline-primary-500 dark:focus-visible:outline-primary-400 focus-visible:outline-offset-1"
           :disabled="page <= 1"
           @click="page = page - 1"
         >
@@ -21,11 +21,11 @@
           <button
             v-else
             type="button"
-            class="w-7 h-7 flex items-center justify-center rounded-md text-sm font-medium transition-colors"
+            class="w-7 h-7 flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-primary-500 dark:focus-visible:outline-primary-400 focus-visible:outline-offset-1"
             :class="
               item === page
                 ? 'bg-primary-500 text-white dark:bg-primary-400 dark:text-gray-900'
-                : 'text-primary-500 dark:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
             "
             @click="page = item"
           >
@@ -35,7 +35,7 @@
 
         <button
           type="button"
-          class="flex items-center gap-0.5 text-sm font-medium text-primary-500 dark:text-primary-400 disabled:text-gray-300 dark:disabled:text-gray-600 disabled:cursor-not-allowed"
+          class="flex items-center gap-0.5 rounded-md px-1.5 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 disabled:pointer-events-none disabled:text-gray-300 dark:disabled:text-gray-600 focus-visible:outline-2 focus-visible:outline-primary-500 dark:focus-visible:outline-primary-400 focus-visible:outline-offset-1"
           :disabled="page >= pageCount"
           @click="page = page + 1"
         >

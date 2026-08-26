@@ -2,7 +2,7 @@
   <div>
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Reports</h1>
 
-    <UTabs v-model="activeTab" :items="tabItems" class="w-full">
+    <UTabs v-model="activeTab" :items="tabItems" variant="link" class="w-full">
       <template #transaction>
         <UCard class="mb-4">
           <div class="flex flex-wrap items-end gap-3">
@@ -24,7 +24,15 @@
             exportable
             export-filename="transaction-report"
             @refresh="loadTx"
-          />
+          >
+            <template #empty-state>
+              <EmptyState
+                :icon="txHasFilter ? 'i-lucide-search-x' : 'i-lucide-list'"
+                :title="txHasFilter ? 'No transactions match your filters' : 'No transactions yet'"
+                :description="txHasFilter ? 'Try a different date or amount range.' : 'Wallet transactions will show up here.'"
+              />
+            </template>
+          </DataTable>
           <div v-if="txTotal > 0" class="pt-4">
             <DataPagination v-model:page="txPage" v-model:page-size="txPageSize" :total="txTotal" />
           </div>
@@ -52,7 +60,15 @@
             exportable
             export-filename="deposit-report"
             @refresh="loadDeposits"
-          />
+          >
+            <template #empty-state>
+              <EmptyState
+                :icon="depositHasFilter ? 'i-lucide-search-x' : 'i-lucide-arrow-down-to-line'"
+                :title="depositHasFilter ? 'No deposits match your filters' : 'No deposits yet'"
+                :description="depositHasFilter ? 'Try a different date or amount range.' : 'Platform-wide deposits will show up here.'"
+              />
+            </template>
+          </DataTable>
           <div v-if="depositTotal > 0" class="pt-4">
             <DataPagination v-model:page="depositPage" v-model:page-size="depositPageSize" :total="depositTotal" />
           </div>
@@ -80,7 +96,15 @@
             exportable
             export-filename="withdrawal-report"
             @refresh="loadWithdrawals"
-          />
+          >
+            <template #empty-state>
+              <EmptyState
+                :icon="withdrawalHasFilter ? 'i-lucide-search-x' : 'i-lucide-arrow-up-from-line'"
+                :title="withdrawalHasFilter ? 'No withdrawals match your filters' : 'No withdrawals yet'"
+                :description="withdrawalHasFilter ? 'Try a different date or amount range.' : 'Platform-wide withdrawals will show up here.'"
+              />
+            </template>
+          </DataTable>
           <div v-if="withdrawalTotal > 0" class="pt-4">
             <DataPagination v-model:page="withdrawalPage" v-model:page-size="withdrawalPageSize" :total="withdrawalTotal" />
           </div>
@@ -108,7 +132,15 @@
             exportable
             export-filename="transfer-payment-report"
             @refresh="loadTransfers"
-          />
+          >
+            <template #empty-state>
+              <EmptyState
+                :icon="transferHasFilter ? 'i-lucide-search-x' : 'i-lucide-arrow-left-right'"
+                :title="transferHasFilter ? 'No transfers match your filters' : 'No transfers yet'"
+                :description="transferHasFilter ? 'Try a different date or amount range.' : 'Payments between users will show up here.'"
+              />
+            </template>
+          </DataTable>
           <div v-if="transferTotal > 0" class="pt-4">
             <DataPagination v-model:page="transferPage" v-model:page-size="transferPageSize" :total="transferTotal" />
           </div>
@@ -136,7 +168,15 @@
             exportable
             export-filename="settlement-report"
             @refresh="loadSettlements"
-          />
+          >
+            <template #empty-state>
+              <EmptyState
+                :icon="settlementHasFilter ? 'i-lucide-search-x' : 'i-lucide-badge-check'"
+                :title="settlementHasFilter ? 'No settlements match your filters' : 'No settlement records yet'"
+                :description="settlementHasFilter ? 'Try a different date or amount range.' : 'Successfully matched deposits will show up here.'"
+              />
+            </template>
+          </DataTable>
           <div v-if="settlementTotal > 0" class="pt-4">
             <DataPagination v-model:page="settlementPage" v-model:page-size="settlementPageSize" :total="settlementTotal" />
           </div>
@@ -222,7 +262,11 @@
             export-filename="merchant-report"
             @refresh="loadMerchants"
             @select="openMerchantTransactions"
-          />
+          >
+            <template #empty-state>
+              <EmptyState icon="i-lucide-store" title="No merchant activity yet" description="Merchant totals will show up here once merchants start transacting." />
+            </template>
+          </DataTable>
         </UCard>
       </template>
     </UTabs>
@@ -278,10 +322,11 @@ const txColumns: ColumnDef<AdminWalletTransaction>[] = [
   { key: 'type', type: 'badge', color: (row) => (row.type === 'CREDIT' ? 'success' : 'neutral') },
   { key: 'status', type: 'status' },
   { key: 'amount', type: 'currency' },
-  { key: 'description', value: (row) => row.description ?? '—' },
+  { key: 'description', value: (row) => row.description ?? '—', class: 'max-w-xs' },
   { key: 'createdAt', label: 'Date', type: 'datetime', sortable: true }
 ]
 const txFilter = reactive<{ startDate?: string; endDate?: string; minAmount?: number; maxAmount?: number }>({})
+const txHasFilter = computed(() => Object.values(txFilter).some((v) => v !== undefined))
 async function loadTx() {
   txLoading.value = true
   txError.value = ''
@@ -320,6 +365,7 @@ const depositColumns: ColumnDef<AdminDeposit>[] = [
   { key: 'createdAt', label: 'Created', type: 'datetime', sortable: true }
 ]
 const depositFilter = reactive<{ startDate?: string; endDate?: string; minAmount?: number; maxAmount?: number }>({})
+const depositHasFilter = computed(() => Object.values(depositFilter).some((v) => v !== undefined))
 async function loadDeposits() {
   depositLoading.value = true
   depositError.value = ''
@@ -359,6 +405,7 @@ const withdrawalColumns: ColumnDef<AdminWithdrawal>[] = [
   { key: 'createdAt', label: 'Created', type: 'datetime', sortable: true }
 ]
 const withdrawalFilter = reactive<{ startDate?: string; endDate?: string; minAmount?: number; maxAmount?: number }>({})
+const withdrawalHasFilter = computed(() => Object.values(withdrawalFilter).some((v) => v !== undefined))
 async function loadWithdrawals() {
   withdrawalLoading.value = true
   withdrawalError.value = ''
@@ -398,6 +445,7 @@ const transferColumns: ColumnDef<AdminPayment>[] = [
   { key: 'createdAt', label: 'Created', type: 'datetime', sortable: true }
 ]
 const transferFilter = reactive<{ startDate?: string; endDate?: string; minAmount?: number; maxAmount?: number }>({})
+const transferHasFilter = computed(() => Object.values(transferFilter).some((v) => v !== undefined))
 async function loadTransfers() {
   transferLoading.value = true
   transferError.value = ''
@@ -436,6 +484,7 @@ const settlementColumns: ColumnDef<AdminDeposit>[] = [
   { key: 'updatedAt', label: 'Settled at', type: 'datetime', sortable: true }
 ]
 const settlementFilter = reactive<{ startDate?: string; endDate?: string; minAmount?: number; maxAmount?: number }>({})
+const settlementHasFilter = computed(() => Object.values(settlementFilter).some((v) => v !== undefined))
 async function loadSettlements() {
   settlementLoading.value = true
   settlementError.value = ''

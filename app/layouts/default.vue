@@ -1,6 +1,6 @@
 <template>
   <UDashboardGroup class="bg-gray-50 dark:bg-gray-950">
-    <UDashboardSidebar>
+    <UDashboardSidebar collapsible :collapsed-size="4" class="bg-white dark:bg-gray-900">
       <template #header="{ collapsed }">
         <NuxtLink to="/" class="flex items-center gap-2.5" :class="collapsed ? 'justify-center w-full' : ''">
           <span
@@ -15,7 +15,7 @@
       </template>
 
       <template #default="{ collapsed }">
-        <UNavigationMenu :collapsed="collapsed" :items="items" orientation="vertical" />
+        <UNavigationMenu :collapsed="collapsed" :tooltip="collapsed" :items="items" orientation="vertical" />
       </template>
 
       <template #footer>
@@ -26,7 +26,12 @@
     <UDashboardPanel>
       <template #header>
         <UDashboardNavbar>
+          <template #left>
+            <UBreadcrumb :items="breadcrumbItems" />
+          </template>
+
           <template #right>
+            <UColorModeButton />
             <UDropdownMenu :items="profileItems" :content="{ align: 'end' }" :ui="{ content: 'w-56' }">
               <UButton size="sm" color="neutral" variant="ghost" trailing-icon="i-lucide-chevron-down">
                 <UAvatar :alt="username ?? '?'" size="2xs" />
@@ -45,9 +50,10 @@
 </template>
 
 <script setup lang="ts">
-import type { DropdownMenuItem, NavigationMenuItem } from '@nuxt/ui'
+import type { BreadcrumbItem, DropdownMenuItem, NavigationMenuItem } from '@nuxt/ui'
 
 const { username, role, isAdmin, logout } = useAuth()
+const route = useRoute()
 
 const profileItems = computed<DropdownMenuItem[][]>(() => [
   [
@@ -74,7 +80,7 @@ const items = computed<NavigationMenuItem[]>(() => [
         { label: 'Users', to: '/users', icon: 'i-lucide-users' },
         { label: 'Merchant', to: '/merchants', icon: 'i-lucide-store' },
         { label: 'Transfer', to: '/transfers', icon: 'i-lucide-arrow-left-right' },
-        { label: 'Payment Gateway', to: '/gateways', icon: 'i-lucide-plug-zap' },
+        { label: 'Gateways', to: '/gateways', icon: 'i-lucide-plug-zap' },
         { label: 'Webhook', to: '/webhooks', icon: 'i-lucide-webhook' },
         { label: 'Fees & Limits', to: '/fees-limits', icon: 'i-lucide-percent' },
         { label: 'Reconciliation', to: '/reconciliation', icon: 'i-lucide-scale' },
@@ -82,4 +88,22 @@ const items = computed<NavigationMenuItem[]>(() => [
       ]
     : [])
 ])
+
+// Derived from the same nav list so it can never drift out of sync with the
+// sidebar — walks `items` tracking the last `type: 'label'` group seen (e.g.
+// "Administration") as the section a page belongs to.
+const breadcrumbItems = computed<BreadcrumbItem[]>(() => {
+  let section: string | undefined
+  for (const item of items.value) {
+    if (item.type === 'label') {
+      section = item.label
+      continue
+    }
+    if (item.to !== route.path) continue
+    return section ? [{ label: section }, { label: item.label, icon: item.icon }] : [{ label: item.label, icon: item.icon }]
+  }
+  // Routes outside the sidebar nav (e.g. /profile) fall back to the last path segment.
+  const segment = route.path.split('/').filter(Boolean).pop()
+  return [{ label: segment ? humanize(segment) : 'Dashboard' }]
+})
 </script>

@@ -140,6 +140,7 @@ const emit = defineEmits<{ update: [deposit: Deposit] }>()
 
 const { checkStatus, simulateSuccess, simulateFailed, cancel, refund } = useDeposits()
 const { isAdmin } = useAuth()
+const toast = useToast()
 
 const checking = ref(false)
 const simulating = ref<'success' | 'failed' | ''>('')
@@ -219,6 +220,7 @@ async function onRefund() {
   error.value = ''
   try {
     emit('update', await refund(props.deposit.id))
+    toast.add({ title: 'Deposit refunded', color: 'success' })
   } catch (err) {
     error.value = apiErrorMessage(err)
   } finally {

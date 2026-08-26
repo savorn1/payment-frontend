@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Users</h1>
       <UButton icon="i-lucide-plus" @click="openCreate">New user</UButton>
     </div>
@@ -26,6 +26,16 @@
           placeholder="Status"
           class="w-40"
         />
+        <UButton
+          v-if="hasActiveFilter"
+          size="sm"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-x"
+          @click="clearFilters"
+        >
+          Clear filters
+        </UButton>
       </div>
     </UCard>
 
@@ -84,6 +94,23 @@
               Delete
             </UButton>
           </div>
+        </template>
+        <template #empty-state>
+          <EmptyState
+            v-if="hasActiveFilter"
+            icon="i-lucide-search-x"
+            title="No users match your filters"
+            description="Try a different search or clear your filters."
+          >
+            <template #action>
+              <UButton color="neutral" variant="soft" icon="i-lucide-x" @click="clearFilters">Clear filters</UButton>
+            </template>
+          </EmptyState>
+          <EmptyState v-else icon="i-lucide-users" title="No users yet" description="Create the first user account to get started.">
+            <template #action>
+              <UButton icon="i-lucide-plus" @click="openCreate">New user</UButton>
+            </template>
+          </EmptyState>
         </template>
       </DataTable>
 
@@ -300,4 +327,16 @@ const {
 onMounted(load)
 watch(sort, load)
 watch(() => [filter.role, filter.enabled], load)
+
+const hasActiveFilter = computed(() => filter.username !== '' || filter.role !== undefined || filter.enabled !== undefined)
+
+function clearFilters() {
+  filter.username = ''
+  filter.role = undefined
+  filter.enabled = undefined
+  // `username` alone isn't in the reactive watch above (it only reloads on
+  // Enter), so clearing it without touching role/status wouldn't otherwise
+  // trigger a reload — call explicitly to cover that case.
+  load()
+}
 </script>

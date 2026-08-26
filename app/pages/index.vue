@@ -1,13 +1,13 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Welcome back{{ username ? `, ${username}` : '' }}
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <UButton icon="i-lucide-refresh-cw" variant="ghost" color="neutral" :loading="loading" @click="loadSummary">
           Refresh
         </UButton>
@@ -203,7 +203,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4">
           <StatTile
             label="Total users"
             :value="String(platform.totalUsers)"
@@ -377,28 +377,28 @@ const adminLinks = [
     iconColor: 'text-gray-500 dark:text-gray-400'
   },
   {
-    label: 'Merchant Management',
+    label: 'Merchant',
     to: '/merchants',
     icon: 'i-lucide-store',
     iconBg: 'bg-success/10',
     iconColor: 'text-success'
   },
   {
-    label: 'Transfer Management',
+    label: 'Transfer',
     to: '/transfers',
     icon: 'i-lucide-arrow-left-right',
     iconBg: 'bg-info/10',
     iconColor: 'text-info'
   },
   {
-    label: 'Payment Gateway',
+    label: 'Gateways',
     to: '/gateways',
     icon: 'i-lucide-plug-zap',
     iconBg: 'bg-primary-50 dark:bg-primary-400/10',
     iconColor: 'text-primary-500 dark:text-primary-400'
   },
   {
-    label: 'Webhook Management',
+    label: 'Webhook',
     to: '/webhooks',
     icon: 'i-lucide-webhook',
     iconBg: 'bg-warning/10',
@@ -431,7 +431,7 @@ const transactionColumns: ColumnDef<WalletTransactionEntry>[] = [
   { key: 'type', type: 'badge', color: (row) => (row.type === 'CREDIT' ? 'success' : 'neutral') },
   { key: 'amount', type: 'currency' },
   { key: 'status', type: 'status' },
-  { key: 'description', value: (row) => row.description ?? '—' },
+  { key: 'description', value: (row) => row.description ?? '—', class: 'max-w-xs' },
   { key: 'createdAt', label: 'Date', type: 'datetime' }
 ]
 

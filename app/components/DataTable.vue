@@ -56,12 +56,19 @@
       </div>
     </div>
 
-    <div
-      v-if="loading && rows.length === 0"
-      class="flex flex-col items-center justify-center gap-3 py-14"
-    >
-      <UIcon name="i-lucide-loader-circle" class="w-6 h-6 text-gray-400 dark:text-gray-500 animate-spin" />
-      <p class="text-sm text-gray-500 dark:text-gray-400">Loading…</p>
+    <div v-if="loading && rows.length === 0" class="space-y-3" role="status" aria-label="Loading">
+      <div
+        v-for="i in 6"
+        :key="i"
+        class="flex items-center gap-4 rounded-lg border border-gray-200 dark:border-gray-800 px-3 py-3"
+      >
+        <USkeleton
+          v-for="(column, colIndex) in skeletonColumns"
+          :key="column.key"
+          class="h-4"
+          :class="colIndex === 0 ? 'w-1/4' : 'flex-1'"
+        />
+      </div>
     </div>
 
     <div v-else-if="rows.length === 0">
@@ -75,7 +82,7 @@
         :data="rows"
         :columns="uColumns"
         :loading="loading"
-        :ui="tableUi"
+        :ui="tableUiWithHover"
         :meta="{ class: { tr: rowClass } }"
         class="hidden sm:block"
         @select="(_e: Event, row: { original: T }) => emit('select', row.original)"
@@ -133,7 +140,7 @@
           v-for="(row, index) in rows"
           :key="index"
           class="rounded-lg border border-gray-200 dark:border-gray-800 p-3"
-          :class="{ 'active:bg-gray-50 dark:active:bg-gray-800/50': hasSelectListener }"
+          :class="{ 'active:bg-success/10 dark:active:bg-success/10': hasSelectListener }"
           @click="emit('select', row)"
         >
           <div
@@ -201,8 +208,13 @@ const sort = defineModel<{ column: string; direction: 'asc' | 'desc' } | undefin
 
 const emit = defineEmits<{ select: [row: T]; refresh: [] }>()
 
-const attrs = useAttrs()
-const hasSelectListener = computed(() => !!attrs.onSelect)
+// `select` is a declared emit, so Vue excludes its `onSelect` listener from
+// `useAttrs()` (declared-emit listeners are consumed as component events,
+// not fallthrough attrs) — that made this always evaluate to false. The raw
+// vnode props aren't split that way, so reading the listener from there
+// instead actually reflects whether a caller passed `@select`.
+const instance = getCurrentInstance()
+const hasSelectListener = computed(() => !!(instance?.vnode.props as { onSelect?: unknown } | null)?.onSelect)
 
 // Hidden-by-key (not index) so visibility survives column list re-renders as
 // long as keys stay the same.
@@ -213,6 +225,10 @@ const showColumnToggle = computed(() => props.columnsToggleable && props.columns
 const visibleColumns = computed(() =>
   props.columns.filter((c) => !hiddenColumnKeys.value.has(c.key))
 )
+
+// Capped so a table with many columns doesn't render a wall of skeleton
+// slivers — enough segments to read as "a row of data," no more.
+const skeletonColumns = computed(() => visibleColumns.value.slice(0, 5))
 
 function setColumnVisible(key: string, visible: boolean) {
   // Always leave at least one column visible — hiding the last one would
@@ -261,9 +277,31 @@ const { tableUi, rowEvenClass, sortButtonClass } = useTableTheme()
 
 // Zebra striping — UTable styles every row uniformly, so alternating shading
 // goes through `meta.class.tr`, which TanStack resolves per-row via `row.index`.
+// Clickable rows (an @select listener) get a pointer cursor here — the hover
+// *background* can't be set this way: UTable's own tbody-level selector
+// (`[&>tr]:data-[selectable=true]:hover:bg-elevated/50`, see tableUiWithHover
+// below) has higher specificity than a plain class on the `tr` itself, so a
+// `hover:bg-*` added here would compile but never actually win and silently
+// never render.
 function rowClass(row: { index: number }) {
-  return row.index % 2 === 1 ? rowEvenClass.value : ''
+  const classes = [row.index % 2 === 1 ? rowEvenClass.value : '']
+  if (hasSelectListener.value) {
+    classes.push('cursor-pointer transition-colors')
+  }
+  return classes.filter(Boolean).join(' ')
 }
+
+// Overrides UTable's own tbody-level hover color (`hover:bg-elevated/50`) by
+// replacing the same slot class Nuxt UI itself would generate — since this
+// goes through the `:ui` prop, Table.vue's own class-merging (tailwind-merge)
+// resolves the conflicting `hover:bg-*` utility instead of both classes
+// fighting it out at matching specificity.
+const tableUiWithHover = computed(() => ({
+  ...tableUi.value,
+  tbody: hasSelectListener.value
+    ? "isolate [&>tr]:data-[selectable=true]:hover:bg-success/10 [&>tr]:data-[selectable=true]:outline-primary/25 [&>tr]:data-[selectable=true]:focus-visible:outline-3 divide-y divide-default"
+    : (tableUi.value as { tbody?: string }).tbody
+}))
 
 // Export: CSV / Excel / PDF / Copy, all client-side, all built from whatever's
 // currently loaded in `rows` (not the full server-side dataset if the caller

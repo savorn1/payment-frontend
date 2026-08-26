@@ -1,5 +1,5 @@
 <template>
-  <UTabs v-model="activeTab" :items="tabItems" class="w-full">
+  <UTabs v-model="activeTab" :items="tabItems" variant="link" class="w-full">
     <template #deposits>
       <UCard class="mb-4">
         <div class="flex flex-wrap items-end gap-3">
@@ -21,7 +21,15 @@
           exportable
           :export-filename="`${merchant.merchantName}-deposits`"
           @refresh="loadDeposits"
-        />
+        >
+          <template #empty-state>
+            <EmptyState
+              :icon="depositHasFilter ? 'i-lucide-search-x' : 'i-lucide-arrow-down-to-line'"
+              :title="depositHasFilter ? 'No deposits match your filters' : 'No deposits yet'"
+              :description="depositHasFilter ? 'Try a different date or amount range.' : undefined"
+            />
+          </template>
+        </DataTable>
         <div v-if="depositTotal > 0" class="pt-4">
           <DataPagination v-model:page="depositPage" v-model:page-size="depositPageSize" :total="depositTotal" />
         </div>
@@ -49,7 +57,15 @@
           exportable
           :export-filename="`${merchant.merchantName}-withdrawals`"
           @refresh="loadWithdrawals"
-        />
+        >
+          <template #empty-state>
+            <EmptyState
+              :icon="withdrawalHasFilter ? 'i-lucide-search-x' : 'i-lucide-arrow-up-from-line'"
+              :title="withdrawalHasFilter ? 'No withdrawals match your filters' : 'No withdrawals yet'"
+              :description="withdrawalHasFilter ? 'Try a different date or amount range.' : undefined"
+            />
+          </template>
+        </DataTable>
         <div v-if="withdrawalTotal > 0" class="pt-4">
           <DataPagination v-model:page="withdrawalPage" v-model:page-size="withdrawalPageSize" :total="withdrawalTotal" />
         </div>
@@ -103,6 +119,13 @@
                 : (row.payerUsername ?? `#${row.payerUserId}`)
             }}
           </template>
+          <template #empty-state>
+            <EmptyState
+              :icon="paymentHasFilter ? 'i-lucide-search-x' : 'i-lucide-arrow-left-right'"
+              :title="paymentHasFilter ? 'No payments match your filters' : 'No payments yet'"
+              :description="paymentHasFilter ? 'Try a different date or amount range.' : undefined"
+            />
+          </template>
         </DataTable>
         <div v-if="paymentTotal > 0" class="pt-4">
           <DataPagination v-model:page="paymentPage" v-model:page-size="paymentPageSize" :total="paymentTotal" />
@@ -142,6 +165,7 @@ const depositPage = ref(1)
 const depositPageSize = ref(10)
 const depositTotal = ref(0)
 const depositFilter = reactive<RangeFilter>({})
+const depositHasFilter = computed(() => Object.values(depositFilter).some((v) => v !== undefined))
 const depositColumns: ColumnDef<AdminDeposit>[] = [
   { key: 'amount', type: 'currency' },
   { key: 'provider', type: 'text' },
@@ -180,6 +204,7 @@ const withdrawalPage = ref(1)
 const withdrawalPageSize = ref(10)
 const withdrawalTotal = ref(0)
 const withdrawalFilter = reactive<RangeFilter>({})
+const withdrawalHasFilter = computed(() => Object.values(withdrawalFilter).some((v) => v !== undefined))
 const withdrawalColumns: ColumnDef<AdminWithdrawal>[] = [
   { key: 'amount', type: 'currency' },
   { key: 'feeAmount', label: 'Fee', type: 'currency' },
@@ -224,6 +249,7 @@ const paymentPage = ref(1)
 const paymentPageSize = ref(10)
 const paymentTotal = ref(0)
 const paymentFilter = reactive<RangeFilter>({})
+const paymentHasFilter = computed(() => Object.values(paymentFilter).some((v) => v !== undefined))
 const showAllPayments = ref(false)
 const paymentColumns: ColumnDef<AdminPayment>[] = [
   { key: 'direction', label: 'Direction' },

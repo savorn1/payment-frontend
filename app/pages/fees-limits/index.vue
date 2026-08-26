@@ -68,6 +68,7 @@ const fields: FieldDef[] = [
     required: true,
     min: 0,
     step: 0.0001,
+    prefix: '%',
     hint: 'As a fraction, e.g. 0.01 = 1%'
   },
   { name: 'minAmount', label: 'Minimum amount', type: 'currency', required: true, min: 0.01 },

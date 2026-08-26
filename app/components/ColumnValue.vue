@@ -15,7 +15,7 @@
   <template v-else-if="column.type === 'badge'">
     <UBadge :color="badgeColor" variant="subtle">{{ text }}</UBadge>
   </template>
-  <template v-else>{{ text }}</template>
+  <template v-else><span class="block truncate" :title="text">{{ text }}</span></template>
 </template>
 
 <script setup lang="ts">

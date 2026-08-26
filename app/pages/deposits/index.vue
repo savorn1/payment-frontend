@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Deposits</h1>
       <UButton icon="i-lucide-plus" @click="showCreate = true">New deposit</UButton>
     </div>
@@ -13,7 +13,18 @@
           v-model:end-date="filter.endDate"
           v-model:min-amount="filter.minAmount"
           v-model:max-amount="filter.maxAmount"
+          hide-clear
         />
+        <UButton
+          v-if="hasActiveFilter"
+          size="sm"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-x"
+          @click="clearFilters"
+        >
+          Clear filters
+        </UButton>
       </div>
     </UCard>
 
@@ -37,7 +48,25 @@
         export-filename="my-deposits"
         @refresh="load"
         @select="openDetail"
-      />
+      >
+        <template #empty-state>
+          <EmptyState
+            v-if="hasActiveFilter"
+            icon="i-lucide-search-x"
+            title="No deposits match your filters"
+            description="Try a different search or clear your filters."
+          >
+            <template #action>
+              <UButton color="neutral" variant="soft" icon="i-lucide-x" @click="clearFilters">Clear filters</UButton>
+            </template>
+          </EmptyState>
+          <EmptyState v-else icon="i-lucide-arrow-down-to-line" title="No deposits yet" description="Add funds to your wallet to get started.">
+            <template #action>
+              <UButton icon="i-lucide-plus" @click="showCreate = true">New deposit</UButton>
+            </template>
+          </EmptyState>
+        </template>
+      </DataTable>
     </UCard>
 
     <UModal
@@ -84,6 +113,23 @@ const statusFilterOptions = [
   { label: 'Refunded', value: 'REFUNDED' },
   { label: 'Expired', value: 'EXPIRED' }
 ]
+
+const hasActiveFilter = computed(
+  () =>
+    filter.status !== undefined ||
+    filter.startDate !== undefined ||
+    filter.endDate !== undefined ||
+    filter.minAmount !== undefined ||
+    filter.maxAmount !== undefined
+)
+
+function clearFilters() {
+  filter.status = undefined
+  filter.startDate = undefined
+  filter.endDate = undefined
+  filter.minAmount = undefined
+  filter.maxAmount = undefined
+}
 
 const showCreate = ref(false)
 const creating = ref(false)

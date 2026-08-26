@@ -11,6 +11,16 @@ export default defineNuxtConfig({
 
   modules: ['@nuxt/ui'],
 
+  // Adds a `cancelled` color slot alongside Nuxt UI's standard 6 (plus the
+  // always-included `neutral`) — StatusBadge needs it distinct from both
+  // `warning` (PENDING) and `neutral` (VOIDED/DRAFT/DISABLED), and there's no
+  // spare slot among the built-in ones left unclaimed for it.
+  ui: {
+    theme: {
+      colors: ['primary', 'secondary', 'success', 'info', 'warning', 'error', 'cancelled']
+    }
+  },
+
   devServer: {
     port: Number(process.env.NUXT_PORT) || 3000
   },

@@ -11,6 +11,31 @@
 // own sort toggle button (not UTable's built-in column-sort UI), so DataTable
 // applies this directly as a class on that button.
 export default defineAppConfig({
+  ui: {
+    colors: {
+      primary: 'blue',
+      // `info` is used distinctly from `primary` (e.g. StatusBadge's
+      // PROCESSING state, the dashboard's "info" stat tiles) — left at its
+      // Nuxt UI default it's also blue, which would now read as identical to
+      // the brand accent. `cyan` keeps the "informational" feel without the
+      // collision.
+      info: 'cyan',
+      // Used by StatusBadge for REFUNDED/REVERSED — "money moved back" reads
+      // as its own thing, not a shade of neutral gray shared with CANCELLED.
+      secondary: 'violet',
+      // Used by StatusBadge for CANCELLED — distinct from `warning`
+      // (PENDING) despite being an adjacent hue.
+      cancelled: 'orange'
+    },
+    // The default panel-left-close/-open icons read as a generic window/code
+    // glyph at the small size the collapsed sidebar's toggle renders at —
+    // chevrons stay legible there and keep the same directional meaning
+    // (left = collapsing that way, right = expanding that way).
+    icons: {
+      panelClose: 'i-lucide-chevrons-left',
+      panelOpen: 'i-lucide-chevrons-right'
+    }
+  },
   tableThemes: {
     plain: {
       ui: {},

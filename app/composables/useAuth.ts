@@ -17,16 +17,21 @@ export interface AuthResponse {
 export function useAuth() {
   const { apiBase } = useRuntimeConfig().public
 
-  const token = useCookie<string | null>('auth_token', { default: () => null, sameSite: 'lax' })
-  const refreshToken = useCookie<string | null>('auth_refresh_token', {
+  // Cookie names are prefixed 'payment_' (rather than the generic 'auth_*')
+  // because other local Nuxt apps on this machine (e.g. loan-frontend) run
+  // on localhost too, just a different port — and per RFC 6265, cookies are
+  // scoped by domain only, not port. Sharing the plain 'auth_token' name
+  // meant logging out of one app cleared the other's session as well.
+  const token = useCookie<string | null>('payment_auth_token', { default: () => null, sameSite: 'lax' })
+  const refreshToken = useCookie<string | null>('payment_auth_refresh_token', {
     default: () => null,
     sameSite: 'lax'
   })
-  const username = useCookie<string | null>('auth_username', {
+  const username = useCookie<string | null>('payment_auth_username', {
     default: () => null,
     sameSite: 'lax'
   })
-  const role = useCookie<string | null>('auth_role', { default: () => null, sameSite: 'lax' })
+  const role = useCookie<string | null>('payment_auth_role', { default: () => null, sameSite: 'lax' })
 
   const isAuthenticated = computed(() => !!token.value)
   const isAdmin = computed(() => role.value === 'ADMIN')

@@ -47,7 +47,18 @@
             v-model:end-date="filter.endDate"
             v-model:min-amount="filter.minAmount"
             v-model:max-amount="filter.maxAmount"
+            hide-clear
           />
+          <UButton
+            v-if="hasActiveFilter"
+            size="sm"
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            @click="clearFilters"
+          >
+            Clear filters
+          </UButton>
         </div>
       </UCard>
 
@@ -73,7 +84,21 @@
           :row-number-start="(page - 1) * pageSize"
           @refresh="load"
           @select="openDetail"
-        />
+        >
+          <template #empty-state>
+            <EmptyState
+              v-if="hasActiveFilter"
+              icon="i-lucide-search-x"
+              title="No transactions match your filters"
+              description="Try a different search or clear your filters."
+            >
+              <template #action>
+                <UButton color="neutral" variant="soft" icon="i-lucide-x" @click="clearFilters">Clear filters</UButton>
+              </template>
+            </EmptyState>
+            <EmptyState v-else icon="i-lucide-wallet" title="No transactions yet" description="Deposits, withdrawals, and payments will show up here." />
+          </template>
+        </DataTable>
 
         <div v-if="total > 0" class="pt-4">
           <DataPagination v-model:page="page" v-model:page-size="pageSize" :total="total" />
@@ -172,7 +197,7 @@ const columns: ColumnDef<WalletTransaction>[] = [
   { key: 'type', type: 'badge', color: (row) => (row.type === 'CREDIT' ? 'success' : 'neutral') },
   { key: 'amount', type: 'currency', sortable: true },
   { key: 'status', type: 'status' },
-  { key: 'description', value: (row) => row.description ?? '—' },
+  { key: 'description', value: (row) => row.description ?? '—', class: 'max-w-xs' },
   { key: 'referenceId', label: 'Reference', value: (row) => row.referenceId ?? '—' },
   { key: 'createdAt', label: 'Date', type: 'datetime', sortable: true }
 ]
@@ -224,6 +249,31 @@ watch(
 )
 watch(pageSize, resetToFirstPage)
 watch(page, load)
+
+const hasActiveFilter = computed(
+  () =>
+    filter.search !== '' ||
+    filter.type !== undefined ||
+    filter.status !== undefined ||
+    filter.startDate !== undefined ||
+    filter.endDate !== undefined ||
+    filter.minAmount !== undefined ||
+    filter.maxAmount !== undefined
+)
+
+function clearFilters() {
+  filter.search = ''
+  filter.type = undefined
+  filter.status = undefined
+  filter.startDate = undefined
+  filter.endDate = undefined
+  filter.minAmount = undefined
+  filter.maxAmount = undefined
+  // `search` alone isn't in the reactive watch above (it only reloads on
+  // Enter), so clearing it without touching another field wouldn't otherwise
+  // trigger a reload — call explicitly to cover that case.
+  resetToFirstPage()
+}
 
 const showDetail = ref(false)
 const selectedTransaction = ref<WalletTransaction | null>(null)

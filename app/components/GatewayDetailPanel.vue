@@ -20,7 +20,7 @@
       </UButton>
     </div>
 
-    <UTabs v-model="activeTab" :items="tabItems" class="w-full">
+    <UTabs v-model="activeTab" :items="tabItems" variant="link" class="w-full">
       <template #configuration>
         <DynamicForm
           v-model="configForm"
@@ -100,7 +100,11 @@
           exportable
           :export-filename="`${gateway.providerName}-call-logs`"
           @refresh="loadLogs"
-        />
+        >
+          <template #empty-state>
+            <EmptyState icon="i-lucide-list" title="No calls logged yet" description="Requests to this gateway will show up here." />
+          </template>
+        </DataTable>
         <div v-if="logsTotal > 0" class="pt-4">
           <DataPagination v-model:page="logsPage" v-model:page-size="logsPageSize" :total="logsTotal" />
         </div>
@@ -127,6 +131,7 @@ const props = defineProps<{ gateway: Gateway }>()
 const emit = defineEmits<{ updated: [Gateway] }>()
 
 const { updateConfiguration, updateCredentials, enable, disable, getHealth, listLogs } = useGateways()
+const toast = useToast()
 
 const gateway = ref<Gateway>(props.gateway)
 watch(
@@ -172,6 +177,7 @@ async function onSaveConfig(values: Record<string, any>) {
       latencyMs: Number(values.latencyMs)
     })
     emit('updated', gateway.value)
+    toast.add({ title: 'Configuration saved', color: 'success' })
   } catch (err) {
     configError.value = apiErrorMessage(err)
   } finally {
@@ -204,6 +210,7 @@ async function onRotateSecret(values: Record<string, any>) {
     gateway.value = await updateCredentials(gateway.value.id, values.secret)
     credentialsForm.value = { secret: '' }
     emit('updated', gateway.value)
+    toast.add({ title: 'Secret rotated', color: 'success' })
   } catch (err) {
     credentialsError.value = apiErrorMessage(err)
   } finally {
@@ -220,6 +227,7 @@ async function onEnable() {
   try {
     gateway.value = await enable(gateway.value.id)
     emit('updated', gateway.value)
+    toast.add({ title: 'Gateway enabled', color: 'success' })
   } finally {
     toggling.value = false
   }
@@ -231,6 +239,7 @@ async function onDisable() {
     gateway.value = await disable(gateway.value.id)
     emit('updated', gateway.value)
     showDisableConfirm.value = false
+    toast.add({ title: 'Gateway disabled', color: 'success' })
   } finally {
     toggling.value = false
   }

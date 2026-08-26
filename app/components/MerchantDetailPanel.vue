@@ -20,7 +20,7 @@
       </UButton>
     </div>
 
-    <UTabs v-model="activeTab" :items="tabItems" class="w-full">
+    <UTabs v-model="activeTab" :items="tabItems" variant="link" class="w-full">
       <template #details>
         <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-sm mb-4">
           <div>
@@ -84,6 +84,9 @@
               Revoke
             </UButton>
           </template>
+          <template #empty-state>
+            <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-6">No API keys yet — create one above.</p>
+          </template>
         </DataTable>
 
         <ConfirmModal
@@ -143,7 +146,11 @@
               :loading="historyLoading"
               exportable
               :export-filename="`${merchant.name}-deposits`"
-            />
+            >
+              <template #empty-state>
+                <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-6">No deposits yet.</p>
+              </template>
+            </DataTable>
           </div>
           <div>
             <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Withdrawals</h3>
@@ -153,7 +160,11 @@
               :loading="historyLoading"
               exportable
               :export-filename="`${merchant.name}-withdrawals`"
-            />
+            >
+              <template #empty-state>
+                <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-6">No withdrawals yet.</p>
+              </template>
+            </DataTable>
           </div>
           <div>
             <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Payments sent</h3>
@@ -163,7 +174,11 @@
               :loading="historyLoading"
               exportable
               :export-filename="`${merchant.name}-payments`"
-            />
+            >
+              <template #empty-state>
+                <p class="text-sm text-gray-400 dark:text-gray-500 text-center py-6">No payments sent yet.</p>
+              </template>
+            </DataTable>
           </div>
         </div>
       </template>
@@ -241,6 +256,7 @@ const {
   createApiKey,
   revokeApiKey
 } = useMerchants()
+const toast = useToast()
 const { listAll: listAllDeposits } = useDeposits()
 const { listAll: listAllWithdrawals } = useWithdrawals()
 const { listAll: listAllPayments } = usePayments()
@@ -273,6 +289,7 @@ async function onSaveName(values: Record<string, any>) {
   try {
     merchant.value = await update(merchant.value.id, values.name)
     emit('updated', merchant.value)
+    toast.add({ title: 'Merchant name saved', color: 'success' })
   } catch (err) {
     saveNameError.value = apiErrorMessage(err)
   } finally {
@@ -289,6 +306,7 @@ async function onActivate() {
   try {
     merchant.value = await updateStatus(merchant.value.id, 'ACTIVE')
     emit('updated', merchant.value)
+    toast.add({ title: 'Merchant activated', color: 'success' })
   } finally {
     toggling.value = false
   }
@@ -300,6 +318,7 @@ async function onDeactivate() {
     merchant.value = await updateStatus(merchant.value.id, 'SUSPENDED')
     emit('updated', merchant.value)
     showDeactivateConfirm.value = false
+    toast.add({ title: 'Merchant deactivated', color: 'success' })
   } finally {
     toggling.value = false
   }
@@ -356,6 +375,7 @@ async function onRevokeApiKey() {
     await revokeApiKey(merchant.value.id, confirmRevoke.value.id)
     confirmRevoke.value = null
     await loadApiKeys()
+    toast.add({ title: 'API key revoked', color: 'success' })
   } catch (err) {
     apiKeyError.value = apiErrorMessage(err)
   } finally {
@@ -397,6 +417,7 @@ async function onSaveWebhook(values: Record<string, any>) {
   try {
     webhookConfig.value = await updateWebhookConfig(merchant.value.id, values.webhookUrl)
     editingWebhook.value = false
+    toast.add({ title: 'Webhook URL saved', color: 'success' })
   } catch (err) {
     saveWebhookError.value = apiErrorMessage(err)
   } finally {

@@ -17,6 +17,16 @@
         />
         <USelect v-model="filter.eventType" :items="eventTypeFilterOptions" placeholder="Event type" class="w-44" />
         <USelect v-model="filter.success" :items="statusFilterOptions" placeholder="Status" class="w-40" />
+        <UButton
+          v-if="hasActiveFilter"
+          size="sm"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-x"
+          @click="clearFilters"
+        >
+          Clear filters
+        </UButton>
       </div>
     </UCard>
 
@@ -86,7 +96,21 @@
         :row-number-start="(page - 1) * pageSize"
         @refresh="load"
         @select="openDetail"
-      />
+      >
+        <template #empty-state>
+          <EmptyState
+            v-if="hasActiveFilter"
+            icon="i-lucide-search-x"
+            title="No deliveries match your filters"
+            description="Try a different search or clear your filters."
+          >
+            <template #action>
+              <UButton color="neutral" variant="soft" icon="i-lucide-x" @click="clearFilters">Clear filters</UButton>
+            </template>
+          </EmptyState>
+          <EmptyState v-else icon="i-lucide-webhook" title="No webhook deliveries yet" description="Deliveries will show up here once merchant events start firing." />
+        </template>
+      </DataTable>
 
       <div v-if="total > 0" class="pt-4">
         <DataPagination v-model:page="page" v-model:page-size="pageSize" :total="total" />
@@ -263,6 +287,16 @@ watch(sort, resetToFirstPage)
 watch(() => [filter.eventType, filter.success, selectedMerchantId.value], resetToFirstPage)
 watch(pageSize, resetToFirstPage)
 watch(page, load)
+
+const hasActiveFilter = computed(
+  () => selectedMerchantId.value !== undefined || filter.eventType !== undefined || filter.success !== undefined
+)
+
+function clearFilters() {
+  selectedMerchantId.value = undefined
+  filter.eventType = undefined
+  filter.success = undefined
+}
 
 const showDetail = ref(false)
 const selectedDelivery = ref<WebhookDelivery | null>(null)

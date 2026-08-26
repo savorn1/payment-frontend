@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Reconciliation</h1>
       <UButton icon="i-lucide-play" :loading="running" @click="onRunNow">Run reconciliation now</UButton>
     </div>
@@ -28,7 +28,11 @@
             exportable
             export-filename="reconciliation-reports"
             @refresh="loadRuns"
-          />
+          >
+            <template #empty-state>
+              <EmptyState icon="i-lucide-file-text" title="No reconciliation runs yet" description="Run reconciliation now to check for mismatches." />
+            </template>
+          </DataTable>
           <div v-if="reportsTotal > 0" class="pt-4">
             <DataPagination v-model:page="reportsPage" v-model:page-size="reportsPageSize" :total="reportsTotal" />
           </div>
@@ -46,7 +50,11 @@
             exportable
             export-filename="unmatched-transactions"
             @refresh="loadUnmatched"
-          />
+          >
+            <template #empty-state>
+              <EmptyState icon="i-lucide-check-circle" title="No unmatched transactions" description="Everything checked out — no mismatches found." />
+            </template>
+          </DataTable>
           <div v-if="unmatchedTotal > 0" class="pt-4">
             <DataPagination v-model:page="unmatchedPage" v-model:page-size="unmatchedPageSize" :total="unmatchedTotal" />
           </div>
@@ -62,7 +70,18 @@
               v-model:end-date="settlementFilter.endDate"
               v-model:min-amount="settlementFilter.minAmount"
               v-model:max-amount="settlementFilter.maxAmount"
+              hide-clear
             />
+            <UButton
+              v-if="hasActiveSettlementFilter"
+              size="sm"
+              color="neutral"
+              variant="ghost"
+              icon="i-lucide-x"
+              @click="clearSettlementFilters"
+            >
+              Clear filters
+            </UButton>
           </div>
         </UCard>
         <UCard>
@@ -75,7 +94,21 @@
             exportable
             export-filename="settlement-records"
             @refresh="loadSettlements"
-          />
+          >
+            <template #empty-state>
+              <EmptyState
+                v-if="hasActiveSettlementFilter"
+                icon="i-lucide-search-x"
+                title="No settlements match your filters"
+                description="Try a different search or clear your filters."
+              >
+                <template #action>
+                  <UButton color="neutral" variant="soft" icon="i-lucide-x" @click="clearSettlementFilters">Clear filters</UButton>
+                </template>
+              </EmptyState>
+              <EmptyState v-else icon="i-lucide-badge-check" title="No settlement records yet" description="Successfully matched deposits will show up here." />
+            </template>
+          </DataTable>
           <div v-if="settlementsTotal > 0" class="pt-4">
             <DataPagination v-model:page="settlementsPage" v-model:page-size="settlementsPageSize" :total="settlementsTotal" />
           </div>
@@ -254,6 +287,26 @@ watch(settlementFilter, () => {
   settlementsPage.value = 1
   loadSettlements()
 })
+
+// "Clear" restores this tab's own baseline (SUCCESS-only) rather than
+// "All statuses" — this view is specifically settlement records, and
+// defaulting to SUCCESS is deliberate, not an unset filter.
+const hasActiveSettlementFilter = computed(
+  () =>
+    settlementStatus.value !== 'SUCCESS' ||
+    settlementFilter.startDate !== undefined ||
+    settlementFilter.endDate !== undefined ||
+    settlementFilter.minAmount !== undefined ||
+    settlementFilter.maxAmount !== undefined
+)
+
+function clearSettlementFilters() {
+  settlementStatus.value = 'SUCCESS'
+  settlementFilter.startDate = undefined
+  settlementFilter.endDate = undefined
+  settlementFilter.minAmount = undefined
+  settlementFilter.maxAmount = undefined
+}
 
 onMounted(() => {
   loadRuns()

@@ -1,5 +1,5 @@
 <template>
-  <UForm :state="model" class="space-y-4" @submit="onSubmit">
+  <UForm novalidate :state="model" class="space-y-4" @submit="onSubmit">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div
         v-for="field in visibleFields"

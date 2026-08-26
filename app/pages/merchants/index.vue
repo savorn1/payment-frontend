@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Merchant Management</h1>
       <UButton icon="i-lucide-plus" @click="showCreate = true">New merchant</UButton>
     </div>
@@ -15,6 +15,16 @@
           @keyup.enter="resetToFirstPage"
         />
         <USelect v-model="filter.status" :items="statusFilterOptions" placeholder="Status" class="w-40" />
+        <UButton
+          v-if="hasActiveFilter"
+          size="sm"
+          color="neutral"
+          variant="ghost"
+          icon="i-lucide-x"
+          @click="clearFilters"
+        >
+          Clear filters
+        </UButton>
       </div>
     </UCard>
 
@@ -40,7 +50,25 @@
         :row-number-start="(page - 1) * pageSize"
         @refresh="load"
         @select="openDetail"
-      />
+      >
+        <template #empty-state>
+          <EmptyState
+            v-if="hasActiveFilter"
+            icon="i-lucide-search-x"
+            title="No merchants match your filters"
+            description="Try a different search or clear your filters."
+          >
+            <template #action>
+              <UButton color="neutral" variant="soft" icon="i-lucide-x" @click="clearFilters">Clear filters</UButton>
+            </template>
+          </EmptyState>
+          <EmptyState v-else icon="i-lucide-store" title="No merchants yet" description="Get started by registering your first merchant.">
+            <template #action>
+              <UButton icon="i-lucide-plus" @click="showCreate = true">New merchant</UButton>
+            </template>
+          </EmptyState>
+        </template>
+      </DataTable>
 
       <div v-if="total > 0" class="pt-4">
         <DataPagination v-model:page="page" v-model:page-size="pageSize" :total="total" />
@@ -138,6 +166,17 @@ watch(sort, resetToFirstPage)
 watch(() => [filter.status], resetToFirstPage)
 watch(pageSize, resetToFirstPage)
 watch(page, load)
+
+const hasActiveFilter = computed(() => filter.name !== '' || filter.status !== undefined)
+
+function clearFilters() {
+  filter.name = ''
+  filter.status = undefined
+  // `name` alone isn't in the reactive watch above (it only reloads on
+  // Enter), so clearing it without touching status wouldn't otherwise
+  // trigger a reload — call explicitly to cover that case.
+  resetToFirstPage()
+}
 
 const showDetail = ref(false)
 const selected = ref<Merchant | null>(null)
